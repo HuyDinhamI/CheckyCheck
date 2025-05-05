@@ -1,0 +1,25 @@
+{
+  "model_placeholder": true,
+  "info": "Đây là file placeholder. Thay thế với model.json và file trọng số sau khi chuyển đổi model TensorFlow/Keras của bạn sang TensorFlow.js",
+  "expected_files": [
+    "model.json",
+    "group1-shard1of1.bin"
+  ],
+  "convertion_command": "tensorflowjs_converter --input_format=keras path/to/your/model.h5 ./models/emotion_model/",
+  "model_format": {
+    "input_shape": [1, 48, 48, 1],
+    "output_shape": [1, 7],
+    "emotion_labels": ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
+  },
+  "dataset_recommendations": [
+    "FER2013",
+    "AffectNet",
+    "KDEF (Karolinska Directed Emotional Faces)"
+  ],
+  "training_tips": {
+    "preprocessing": "Chuyển đổi ảnh về grayscale và resize thành 48x48 pixels",
+    "augmentation": "Sử dụng data augmentation để tăng số lượng và tính đa dạng của dữ liệu",
+    "architecture": "CNN có thể bắt đầu với cấu trúc đơn giản: Conv2D -> MaxPooling -> Conv2D -> MaxPooling -> Flatten -> Dense",
+    "transfer_learning": "Có thể sử dụng mô hình pre-trained như MobileNet hoặc VGG-Face, rồi thêm các lớp mới cho nhận diện cảm xúc"
+  }
+}
