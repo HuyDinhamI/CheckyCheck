@@ -1,0 +1,12 @@
+{
+  "name": "emotion-recognition-game",
+  "version": "1.0.0",
+  "description": "Web game for facial emotion recognition",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Nhận Diện Cảm Xúc</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Trò Chơi Nhận Diện Cảm Xúc</h1>
+        </header>
+
+        <main>
+            <!-- Màn hình chào mừng / Menu -->
+            <div id="welcome-screen" class="screen active">
+                <h2>Chào mừng bạn!</h2>
+                <p>Hãy chọn chế độ chơi:</p>
+                <div class="game-modes">
+                    <button class="btn game-mode" data-mode="basic">Cơ Bản (3 cảm xúc)</button>
+                    <button class="btn game-mode" data-mode="time_attack">Thử Thách Thời Gian</button>
+                    <button class="btn game-mode" data-mode="emotion_master">Bậc Thầy Cảm Xúc</button>
+                    <button class="btn game-mode" data-mode="intensity">Thử Thách Cường Độ</button>
+                </div>
+                <button class="btn leaderboard-btn">Xem Bảng Xếp Hạng</button>
+            </div>
+
+            <!-- Màn hình chơi game -->
+            <div id="game-screen" class="screen">
+                <div class="game-container">
+                    <div class="game-info">
+                        <div class="emotion-task">
+                            <h3>Nhiệm vụ: <span id="target-emotion">Vui vẻ</span></h3>
+                        </div>
+                        <div class="timer">
+                            <span>Thời gian: <span id="timer-value">10</span>s</span>
+                        </div>
+                        <div class="round-info">
+                            <span>Vòng: <span id="round-number">1</span>/3</span>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-container">
+                        <video id="webcam" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div id="face-box"></div>
+                        <div id="emotion-display">
+                            <span id="detected-emotion">Chưa nhận diện</span>
+                            <span id="confidence-level">0%</span>
+                        </div>
+                        <!-- Thanh đo cho chế độ Intensity -->
+                        <div id="intensity-meter" style="display: none;">
+                            <div class="meter-container">
+                                <div class="meter-bar">
+                                    <div class="target-zone"></div>
+                                    <div class="current-level"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="back-btn" class="btn">Trở về</button>
+            </div>
+
+            <!-- Màn hình kết thúc game -->
+            <div id="end-screen" class="screen">
+                <h2>Kết thúc trò chơi!</h2>
+                <div class="result">
+                    <p>Bạn đã hoàn thành với <span id="final-score">0</span> điểm</p>
+                </div>
+                <div class="submit-score">
+                    <h3>Lưu điểm số của bạn</h3>
+                    <input type="text" id="player-name" placeholder="Nhập tên của bạn">
+                    <button id="submit-score-btn" class="btn">Gửi</button>
+                </div>
+                <div class="action-buttons">
+                    <button id="play-again-btn" class="btn">Chơi lại</button>
+                    <button id="menu-btn" class="btn">Về Menu</button>
+                </div>
+            </div>
+
+            <!-- Màn hình bảng xếp hạng -->
+            <div id="leaderboard-screen" class="screen">
+                <h2>Bảng Xếp Hạng</h2>
+                <div class="filter-options">
+                    <select id="leaderboard-mode-filter">
+                        <option value="">Tất cả chế độ chơi</option>
+                        <option value="basic">Cơ Bản</option>
+                        <option value="time_attack">Thử Thách Thời Gian</option>
+                        <option value="emotion_master">Bậc Thầy Cảm Xúc</option>
+                        <option value="intensity">Thử Thách Cường Độ</option>
+                    </select>
+                </div>
+                <table id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Hạng</th>
+                            <th>Tên</th>
+                            <th>Điểm</th>
+                            <th>Chế độ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                    </tbody>
+                </table>
+                <button id="leaderboard-back-btn" class="btn">Trở về</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 - Trò Chơi Nhận Diện Cảm Xúc</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/main.js" type="module"></script>
+</body>
+</html>
