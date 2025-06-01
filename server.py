@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import numpy as np
@@ -9,8 +10,6 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import tensorflow as tf
 
-# Add src directory to path to import existing code
-sys.path.append('../src')
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -25,11 +24,11 @@ def load_model_and_cascade():
     global model, face_cascade
     try:
         # Load the emotion detection model
-        model = tf.keras.models.load_model('../src/model.h5')
+        model = tf.keras.models.load_model('assets/models/model.h5')
         print("✅ Emotion model loaded successfully")
         
         # Load face cascade
-        cascade_path = '../src/haarcascade_frontalface_default.xml'
+        cascade_path = 'assets/models/haarcascade_frontalface_default.xml'
         if os.path.exists(cascade_path):
             face_cascade = cv2.CascadeClassifier(cascade_path)
             print("✅ Face cascade loaded successfully")
