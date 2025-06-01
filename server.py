@@ -9,7 +9,8 @@ from PIL import Image
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import tensorflow as tf
-
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -19,13 +20,38 @@ model = None
 emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
 face_cascade = None
 
+def create_model():
+    """Create the CNN model architecture"""
+    model = Sequential()
+
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(48,48,1)))
+    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(7, activation='softmax'))
+    
+    return model
+
 def load_model_and_cascade():
     """Load the trained model and face cascade"""
     global model, face_cascade
     try:
-        # Load the emotion detection model
-        model = tf.keras.models.load_model('assets/models/model.h5')
-        print("✅ Emotion model loaded successfully")
+        # Create model architecture
+        model = create_model()
+        
+        # Load weights
+        model.load_weights('assets/models/model.h5')
+        print("✅ Model weights loaded successfully")
         
         # Load face cascade
         cascade_path = 'assets/models/haarcascade_frontalface_default.xml'
