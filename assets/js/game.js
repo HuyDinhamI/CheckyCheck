@@ -18,6 +18,9 @@ class EmotionGame {
         this.requiredDuration = 2000; // Will be dynamically set based on level (in milliseconds)
         this.threshold = 60; // Changed from 70 to 60
         
+        // Auto-transition for final level
+        this.finalLevelTimeout = null;
+        
         // Statistics
         this.gameStats = {
             startTime: null,
@@ -280,11 +283,28 @@ class EmotionGame {
         // Stop capture temporarily
         this.app.camera.stopCapture();
         
+        // Check if this is the last level
+        const isLastLevel = (this.currentLevel + 1 >= this.levels.length);
+        
         // Show level complete screen
         this.app.onLevelComplete(this.currentLevel + 1, this.currentScore);
+        
+        // If this is the last level, auto-transition to victory screen after 2.5 seconds
+        if (isLastLevel) {
+            console.log('🎯 Final level completed! Auto-transitioning to victory screen in 2.5s...');
+            this.finalLevelTimeout = setTimeout(() => {
+                this.completeGame();
+            }, 2500);
+        }
     }
     
     nextLevel() {
+        // Clear any pending auto-transition timeout
+        if (this.finalLevelTimeout) {
+            clearTimeout(this.finalLevelTimeout);
+            this.finalLevelTimeout = null;
+        }
+        
         this.currentLevel++;
         
         if (this.currentLevel >= this.levels.length) {
@@ -303,6 +323,12 @@ class EmotionGame {
     
     skipLevel() {
         if (confirm(`Bạn có chắc muốn bỏ qua màn ${this.currentLevel + 1}?`)) {
+            // Clear any pending timeout
+            if (this.finalLevelTimeout) {
+                clearTimeout(this.finalLevelTimeout);
+                this.finalLevelTimeout = null;
+            }
+            
             // Record as failed level
             this.gameStats.levelScores.push({
                 level: this.currentLevel + 1,
@@ -319,6 +345,12 @@ class EmotionGame {
     
     completeGame() {
         console.log('🏆 Game completed!');
+        
+        // Clear any pending timeout
+        if (this.finalLevelTimeout) {
+            clearTimeout(this.finalLevelTimeout);
+            this.finalLevelTimeout = null;
+        }
         
         // Calculate final stats
         this.gameStats.totalTime = Date.now() - this.gameStats.startTime;
@@ -356,6 +388,12 @@ class EmotionGame {
         
         this.isPlaying = false;
         this.isPaused = false;
+        
+        // Clear any pending timeout
+        if (this.finalLevelTimeout) {
+            clearTimeout(this.finalLevelTimeout);
+            this.finalLevelTimeout = null;
+        }
         
         // Stop capture
         if (this.app.camera) {
