@@ -80,9 +80,9 @@ class EmotionGame {
     }
     
     generateLevels() {
-        // Generate 3 random emotions
-        this.levels = utils.getRandomEmotions(3);
-        console.log('🎯 Generated levels:', this.levels);
+        // Temporary: Set all levels to "happy" for testing
+        this.levels = ['happy', 'happy', 'happy'];
+        console.log('🎯 Generated levels (TEST MODE):', this.levels);
     }
     
     start() {
