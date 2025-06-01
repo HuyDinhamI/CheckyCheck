@@ -1,8 +1,0 @@
-Flask
-Flask-CORS
-Pillow
-numpy
-opencv-python
-mediapipe
-torch
-torchvision

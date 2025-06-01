@@ -1,114 +1,200 @@
-# Trò Chơi Nhận Diện Cảm Xúc
+# 🎭 CheckyCheck - Emotion Challenge Game
 
-Ứng dụng web game sử dụng trí tuệ nhân tạo để nhận diện cảm xúc của người chơi thông qua camera.
+Một game web thú vị để thử thách khả năng thể hiện cảm xúc của bạn! Sử dụng AI để nhận diện cảm xúc qua camera và vượt qua 3 màn chơi.
 
-## Cấu Trúc Dự Án
+## 🎯 Tính năng
 
-```
-/
-├── backend/               # Server và API endpoints
-│   ├── app.py            # Flask application
-│   ├── emotion_detector.py # Module nhận diện cảm xúc
-│   ├── requirements.txt  # Python dependencies
-│   └── models/           # Các model AI đã được huấn luyện
-│       ├── FER_static_ResNet50_AffectNet.pt
-│       └── FER_dinamic_LSTM_Aff-Wild2.pt
-│
-└── frontend/             # Web interface
-    ├── src/              # TypeScript source code
-    │   ├── main.ts      # Entry point
-    │   ├── ui.ts        # UI management
-    │   ├── apiService.ts # API communication
-    │   └── gameLogics.ts # Game logic
-    ├── public/           # Static assets
-    │   ├── index.html   # Main HTML
-    │   ├── css/         # Stylesheets
-    │   └── js/          # Compiled JavaScript
-    ├── package.json     # Node.js dependencies
-    └── tsconfig.json    # TypeScript configuration
-```
+- **Real-time emotion detection**: Nhận diện cảm xúc qua camera
+- **3 levels game**: Vượt qua 3 màn với cảm xúc ngẫu nhiên
+- **7 emotions**: Happy, Sad, Angry, Surprised, Fearful, Disgusted, Neutral
+- **Threshold scoring**: Cần đạt 70% độ chính xác để pass
+- **Beautiful UI**: Giao diện đẹp, responsive
+- **Real-time feedback**: Hiển thị điểm số trực tiếp
 
-## Các Tính Năng
+## 🛠️ Setup
 
-- Nhận diện cảm xúc thời gian thực qua camera
-- Nhiều chế độ chơi:
-  - **Cơ Bản**: Thể hiện 3 cảm xúc cụ thể theo yêu cầu
-  - **Thử Thách Thời Gian**: Thể hiện các cảm xúc với thời gian giới hạn giảm dần
-  - **Bậc Thầy Cảm Xúc**: Thể hiện một chuỗi cảm xúc theo thứ tự
-  - **Thử Thách Cường Độ**: Duy trì cường độ cảm xúc trong khoảng mục tiêu
-- Bảng xếp hạng để theo dõi điểm số
+### 1. Dependencies
 
-## Cài Đặt và Chạy
+Cài đặt Python dependencies:
 
-### Backend
+```bash
+# Tạo virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate  # Linux/Mac
+# hoặc: venv\Scripts\activate  # Windows
 
-1. Tạo và kích hoạt môi trường ảo Python:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate     # Windows
-   ```
-
-2. Cài đặt các thư viện cần thiết:
-   ```
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-3. Chạy server:
-   ```
-   python app.py
-   ```
-
-   Backend sẽ chạy tại địa chỉ http://localhost:5000
-
-### Frontend
-
-1. Cài đặt Node.js và npm (nếu chưa có)
-
-2. Cài đặt các dependencies:
-   ```
-   cd frontend
-   npm install
-   ```
-
-3. Biên dịch TypeScript:
-   ```
-   npm run build
-   ```
-
-4. Mở file `frontend/public/index.html` trong trình duyệt web hoặc phục vụ bằng một web server đơn giản:
-   ```
-   # Sử dụng Python
-   cd frontend/public
-   python -m http.server 8000
-   ```
-   
-   Sau đó truy cập http://localhost:8000 trong trình duyệt của bạn.
-
-### Yêu Cầu Hệ Thống
-
-- Camera web
-- Trình duyệt hiện đại hỗ trợ WebRTC (Chrome, Firefox, Edge, Safari)
-- Python 3.7+
-- Node.js 14+
-
-## Phát Triển
-
-Để phát triển frontend:
-```
-cd frontend
-npm run watch
+# Cài đặt packages
+pip install -r requirements.txt
 ```
 
-Điều này sẽ biên dịch TypeScript khi có thay đổi.
+### 2. Model Setup
 
-## Công Nghệ Sử Dụng
+Đảm bảo có file `model.h5` trong thư mục `../src/`:
 
-- **Backend**: Python, Flask, PyTorch, MediaPipe
-- **Frontend**: TypeScript, HTML5, CSS3
-- **Mô hình AI**: ResNet50, LSTM
+```
+CheckyCheck/
+├── server.py
+├── requirements.txt
+└── ../src/
+    ├── model.h5                    # Model đã train
+    └── haarcascade_frontalface_default.xml
+```
 
-## Giấy Phép
+### 3. Chạy Server
 
-[MIT License](LICENSE)
+```bash
+# Trong thư mục CheckyCheck
+python server.py
+```
+
+Server sẽ chạy tại: `http://localhost:5000`
+
+## 🎮 Cách chơi
+
+1. **Mở browser** và truy cập `http://localhost:5000`
+2. **Cho phép camera access** khi được yêu cầu
+3. **Nhấn "Bắt đầu chơi"**
+4. **Thể hiện cảm xúc** được yêu cầu trước camera
+5. **Giữ cảm xúc 2-3 giây** để đạt 70% pass màn
+6. **Hoàn thành 3 màn** để thắng game!
+
+## 🏗️ Kiến trúc
+
+```
+Frontend (HTML/CSS/JS)
+    ↓
+Camera API (getUserMedia)
+    ↓
+Base64 Image Data
+    ↓
+Flask Backend Server
+    ↓
+TensorFlow Model (model.h5)
+    ↓
+Emotion Prediction
+    ↓
+JSON Response
+    ↓
+Game Logic & UI Update
+```
+
+## 📁 Cấu trúc project
+
+```
+CheckyCheck/
+├── index.html              # Main HTML file
+├── server.py               # Flask backend server
+├── requirements.txt        # Python dependencies
+├── README.md              # This file
+└── assets/
+    ├── css/
+    │   └── style.css       # Styles
+    └── js/
+        ├── main.js         # App controller
+        ├── camera.js       # Camera handling
+        └── game.js         # Game logic
+```
+
+## 🔧 API Endpoints
+
+### `GET /`
+Serve trang chủ
+
+### `POST /predict`
+Predict emotion từ image
+
+**Request:**
+```json
+{
+    "image": "data:image/jpeg;base64,/9j/4AAQ..."
+}
+```
+
+**Response:**
+```json
+{
+    "faces_detected": 1,
+    "emotions": [{
+        "face_position": {"x": 100, "y": 50, "w": 200, "h": 250},
+        "max_emotion": "happy",
+        "max_confidence": 0.85,
+        "all_emotions": {
+            "angry": 0.02,
+            "disgusted": 0.01,
+            "fearful": 0.03,
+            "happy": 0.85,
+            "neutral": 0.05,
+            "sad": 0.02,
+            "surprised": 0.02
+        }
+    }],
+    "message": "Success"
+}
+```
+
+### `GET /health`
+Health check endpoint
+
+## 🎨 Customization
+
+### Thay đổi độ khó
+Trong `assets/js/game.js`:
+
+```javascript
+this.threshold = 70;        // Threshold để pass (70%)
+this.requiredFrames = 60;   // Số frames cần giữ (2s)
+```
+
+### Thêm emotions mới
+1. Update `emotion_dict` trong `server.py`
+2. Update `utils.emotionNames` và `utils.emotionIcons` trong `main.js`
+
+### Thay đổi số màn
+Trong `game.js`:
+
+```javascript
+this.levels = utils.getRandomEmotions(3); // 3 → số màn bạn muốn
+```
+
+## 🐛 Troubleshooting
+
+### Camera không hoạt động
+- Kiểm tra browser có hỗ trợ getUserMedia API
+- Đảm bảo đã cho phép camera access
+- Thử refresh page và allow lại camera
+
+### Server không start được
+- Kiểm tra đã cài đầy đủ dependencies
+- Đảm bảo file `../src/model.h5` tồn tại
+- Kiểm tra port 5000 có bị occupied không
+
+### Model predict lỗi
+- Kiểm tra model.h5 có đúng format không
+- Đảm bảo TensorFlow version compatible
+- Check server logs trong terminal
+
+### Face detection không hoạt động
+- Đảm bảo đủ ánh sáng
+- Nhìn thẳng vào camera
+- Giữ khuôn mặt trong frame
+
+## 📝 TODO
+
+- [ ] Add sound effects
+- [ ] Leaderboard system
+- [ ] Multiple difficulty levels
+- [ ] Mobile optimization
+- [ ] Multiplayer mode
+- [ ] Custom emotion sequences
+
+## 🤝 Contributing
+
+Feel free to contribute! Open issues hoặc tạo pull requests.
+
+## 📄 License
+
+MIT License - xem file LICENSE để biết thêm chi tiết.
+
+---
+
+**Enjoy playing CheckyCheck! 🎭✨**
