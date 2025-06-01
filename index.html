@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CheckyCheck - Emotion Challenge Game</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Page -->
+        <div id="landing-page" class="screen active">
+            <div class="hero">
+                <h1 class="game-title">🎭 CheckyCheck</h1>
+                <p class="game-subtitle">Thử thách nhận diện cảm xúc</p>
+                <p class="game-description">
+                    Hãy thể hiện cảm xúc trước camera để vượt qua 3 màn chơi!<br>
+                    Mỗi màn cần đạt độ chính xác 70% để pass.
+                </p>
+                <button id="start-btn" class="btn btn-primary">Bắt đầu chơi</button>
+                <button id="instructions-btn" class="btn btn-secondary">Hướng dẫn</button>
+            </div>
+        </div>
+
+        <!-- Instructions Modal -->
+        <div id="instructions-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Hướng dẫn chơi</h2>
+                <div class="instructions">
+                    <div class="instruction-item">
+                        <h3>🎯 Mục tiêu</h3>
+                        <p>Vượt qua 3 màn chơi bằng cách thể hiện đúng cảm xúc được yêu cầu</p>
+                    </div>
+                    <div class="instruction-item">
+                        <h3>📊 Cách chơi</h3>
+                        <p>• Nhìn vào camera và thể hiện cảm xúc được yêu cầu</p>
+                        <p>• Giữ cảm xúc đó trong 2-3 giây</p>
+                        <p>• Đạt độ chính xác 70% để pass màn</p>
+                    </div>
+                    <div class="instruction-item">
+                        <h3>😊 7 Cảm xúc</h3>
+                        <p>Happy (Vui), Sad (Buồn), Angry (Tức giận), Surprised (Ngạc nhiên), Fearful (Sợ hãi), Disgusted (Ghê tởm), Neutral (Bình thường)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="level-info">
+                    <span id="current-level">Màn 1/3</span>
+                </div>
+                <div class="target-emotion">
+                    <span>Thể hiện: </span>
+                    <span id="target-emotion-text">Happy</span>
+                    <span id="target-emotion-icon">😊</span>
+                </div>
+                <div class="score-info">
+                    <span>Điểm: </span>
+                    <span id="current-score">0%</span>
+                </div>
+            </div>
+
+            <div class="game-main">
+                <div class="video-container">
+                    <video id="video" autoplay muted></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="face-overlay" id="face-overlay"></div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Đang khởi tạo camera...</p>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                        <div class="progress-threshold">70%</div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-label">Hãy thể hiện cảm xúc!</span>
+                    </div>
+                </div>
+
+                <div class="emotion-debug" id="emotion-debug">
+                    <h4>Độ chính xác các cảm xúc:</h4>
+                    <div class="emotion-scores" id="emotion-scores"></div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button id="skip-level-btn" class="btn btn-warning">Bỏ qua màn</button>
+                <button id="quit-game-btn" class="btn btn-danger">Thoát game</button>
+            </div>
+        </div>
+
+        <!-- Level Complete Screen -->
+        <div id="level-complete-screen" class="screen">
+            <div class="celebration">
+                <h2>🎉 Hoàn thành màn <span id="completed-level"></span>!</h2>
+                <p class="final-score">Điểm số: <span id="level-final-score"></span>%</p>
+                <button id="next-level-btn" class="btn btn-primary">Màn tiếp theo</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victory-screen" class="screen">
+            <div class="victory">
+                <h1>🏆 Chúc mừng!</h1>
+                <p>Bạn đã hoàn thành tất cả 3 màn!</p>
+                <div class="final-stats" id="final-stats"></div>
+                <button id="play-again-btn" class="btn btn-primary">Chơi lại</button>
+                <button id="home-btn" class="btn btn-secondary">Về trang chủ</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <div class="game-over">
+                <h1>💔 Game Over</h1>
+                <p>Đừng nản lòng, hãy thử lại!</p>
+                <button id="retry-btn" class="btn btn-primary">Thử lại</button>
+                <button id="home-btn-2" class="btn btn-secondary">Về trang chủ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/camera.js"></script>
+    <script src="assets/js/game.js"></script>
+</body>
+</html>
