@@ -14,8 +14,8 @@ class EmotionGame {
         // Scoring
         this.currentScore = 0;
         this.targetEmotion = null;
-        this.sustainedFrames = 0;
-        this.requiredFrames = 60; // Will be dynamically set based on level
+        this.sustainedStartTime = null; // Changed from sustainedFrames to time-based
+        this.requiredDuration = 2000; // Will be dynamically set based on level (in milliseconds)
         this.threshold = 60; // Changed from 70 to 60
         
         // Statistics
@@ -41,11 +41,11 @@ class EmotionGame {
         this.predictionInterval = 100; // Predict every 100ms to reduce server load
     }
     
-    // Get required frames based on level: Level 1=2s, Level 2=3s, Level 3=4s
-    getRequiredFrames(level) {
+    // Get required duration based on level: Level 1=2s, Level 2=3s, Level 3=4s
+    getRequiredDuration(level) {
         const baseDuration = 2; // 2 seconds for level 1
         const duration = baseDuration + level; // +1 second per level
-        return duration * 30; // Convert to frames (assuming 30fps)
+        return duration * 1000; // Convert to milliseconds
     }
     
     async init() {
@@ -109,12 +109,12 @@ class EmotionGame {
         
         this.targetEmotion = this.levels[this.currentLevel];
         this.currentScore = 0;
-        this.sustainedFrames = 0;
+        this.sustainedStartTime = null;
         
-        // Set required frames based on current level
-        this.requiredFrames = this.getRequiredFrames(this.currentLevel);
+        // Set required duration based on current level
+        this.requiredDuration = this.getRequiredDuration(this.currentLevel);
         
-        console.log(`🎯 Starting level ${this.currentLevel + 1}: ${this.targetEmotion} (${this.requiredFrames/30}s duration)`);
+        console.log(`🎯 Starting level ${this.currentLevel + 1}: ${this.targetEmotion} (${this.requiredDuration/1000}s duration)`);
         
         // Update UI
         this.updateLevelUI();
@@ -127,7 +127,7 @@ class EmotionGame {
     }
     
     updateLevelUI() {
-        this.levelInfo.textContent = `Màn ${this.currentLevel + 1}/3 (Giữ ${this.requiredFrames/30}s)`;
+        this.levelInfo.textContent = `Màn ${this.currentLevel + 1}/3 (Giữ ${this.requiredDuration/1000}s)`;
         this.targetEmotionText.textContent = utils.emotionNames[this.targetEmotion];
         this.targetEmotionIcon.textContent = utils.emotionIcons[this.targetEmotion];
     }
@@ -143,8 +143,15 @@ class EmotionGame {
         // Update progress color and label
         if (progressPercent >= this.threshold) {
             this.progressFill.classList.add('success');
-            const remainingTime = ((this.requiredFrames - this.sustainedFrames) / 30).toFixed(1);
-            this.progressLabel.textContent = `Tuyệt vời! Giữ nguyên... (${remainingTime}s)`;
+            
+            // Calculate remaining time
+            let remainingTime = this.requiredDuration / 1000;
+            if (this.sustainedStartTime) {
+                const sustainedTime = Date.now() - this.sustainedStartTime;
+                remainingTime = Math.max(0, (this.requiredDuration - sustainedTime) / 1000);
+            }
+            
+            this.progressLabel.textContent = `Tuyệt vời! Giữ nguyên... (${remainingTime.toFixed(1)}s)`;
             this.faceOverlay.setOverlayColor('#00ff00');
         } else {
             this.progressFill.classList.remove('success');
@@ -230,20 +237,30 @@ class EmotionGame {
     
     onNoFaceDetected() {
         this.faceOverlay.hideOverlay();
-        this.sustainedFrames = 0;
+        this.sustainedStartTime = null; // Reset timer when no face detected
         this.progressLabel.textContent = 'Không phát hiện khuôn mặt. Hãy nhìn vào camera!';
         this.faceOverlay.setOverlayColor('#ff4444');
     }
     
     checkLevelCompletion() {
         if (this.currentScore >= this.threshold) {
-            this.sustainedFrames++;
+            // Start timer if not already started
+            if (!this.sustainedStartTime) {
+                this.sustainedStartTime = Date.now();
+                console.log('⏰ Started sustain timer');
+            }
             
-            if (this.sustainedFrames >= this.requiredFrames) {
+            // Check if enough time has passed
+            const sustainedTime = Date.now() - this.sustainedStartTime;
+            if (sustainedTime >= this.requiredDuration) {
                 this.completeLevel();
             }
         } else {
-            this.sustainedFrames = 0;
+            // Reset timer if score drops below threshold
+            if (this.sustainedStartTime) {
+                console.log('❌ Score dropped, resetting timer');
+                this.sustainedStartTime = null;
+            }
         }
     }
     
@@ -257,7 +274,7 @@ class EmotionGame {
             emotion: this.targetEmotion,
             score: this.currentScore,
             time: levelTime,
-            duration: this.requiredFrames / 30
+            duration: this.requiredDuration / 1000
         });
         
         // Stop capture temporarily
@@ -293,7 +310,7 @@ class EmotionGame {
                 score: 0,
                 time: Date.now() - this.gameStats.startTime,
                 skipped: true,
-                duration: this.requiredFrames / 30
+                duration: this.requiredDuration / 1000
             });
             
             this.nextLevel();
