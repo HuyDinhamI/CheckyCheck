@@ -15,8 +15,8 @@ class EmotionGame {
         this.currentScore = 0;
         this.targetEmotion = null;
         this.sustainedFrames = 0;
-        this.requiredFrames = 60; // ~2 seconds at 30fps
-        this.threshold = 70;
+        this.requiredFrames = 60; // Will be dynamically set based on level
+        this.threshold = 60; // Changed from 70 to 60
         
         // Statistics
         this.gameStats = {
@@ -39,6 +39,13 @@ class EmotionGame {
         // Frame processing
         this.lastPredictionTime = 0;
         this.predictionInterval = 100; // Predict every 100ms to reduce server load
+    }
+    
+    // Get required frames based on level: Level 1=2s, Level 2=3s, Level 3=4s
+    getRequiredFrames(level) {
+        const baseDuration = 2; // 2 seconds for level 1
+        const duration = baseDuration + level; // +1 second per level
+        return duration * 30; // Convert to frames (assuming 30fps)
     }
     
     async init() {
@@ -104,7 +111,10 @@ class EmotionGame {
         this.currentScore = 0;
         this.sustainedFrames = 0;
         
-        console.log(`🎯 Starting level ${this.currentLevel + 1}: ${this.targetEmotion}`);
+        // Set required frames based on current level
+        this.requiredFrames = this.getRequiredFrames(this.currentLevel);
+        
+        console.log(`🎯 Starting level ${this.currentLevel + 1}: ${this.targetEmotion} (${this.requiredFrames/30}s duration)`);
         
         // Update UI
         this.updateLevelUI();
@@ -117,7 +127,7 @@ class EmotionGame {
     }
     
     updateLevelUI() {
-        this.levelInfo.textContent = `Màn ${this.currentLevel + 1}/3`;
+        this.levelInfo.textContent = `Màn ${this.currentLevel + 1}/3 (Giữ ${this.requiredFrames/30}s)`;
         this.targetEmotionText.textContent = utils.emotionNames[this.targetEmotion];
         this.targetEmotionIcon.textContent = utils.emotionIcons[this.targetEmotion];
     }
@@ -133,7 +143,8 @@ class EmotionGame {
         // Update progress color and label
         if (progressPercent >= this.threshold) {
             this.progressFill.classList.add('success');
-            this.progressLabel.textContent = `Tuyệt vời! Giữ nguyên... (${this.sustainedFrames}/${this.requiredFrames})`;
+            const remainingTime = ((this.requiredFrames - this.sustainedFrames) / 30).toFixed(1);
+            this.progressLabel.textContent = `Tuyệt vời! Giữ nguyên... (${remainingTime}s)`;
             this.faceOverlay.setOverlayColor('#00ff00');
         } else {
             this.progressFill.classList.remove('success');
@@ -245,7 +256,8 @@ class EmotionGame {
             level: this.currentLevel + 1,
             emotion: this.targetEmotion,
             score: this.currentScore,
-            time: levelTime
+            time: levelTime,
+            duration: this.requiredFrames / 30
         });
         
         // Stop capture temporarily
@@ -280,7 +292,8 @@ class EmotionGame {
                 emotion: this.targetEmotion,
                 score: 0,
                 time: Date.now() - this.gameStats.startTime,
-                skipped: true
+                skipped: true,
+                duration: this.requiredFrames / 30
             });
             
             this.nextLevel();
@@ -343,9 +356,9 @@ class EmotionGame {
 const gameUtils = {
     // Difficulty settings
     difficulties: {
-        easy: { threshold: 65, sustainedTime: 1.5 },
-        normal: { threshold: 70, sustainedTime: 2.0 },
-        hard: { threshold: 75, sustainedTime: 2.5 }
+        easy: { threshold: 60, sustainedTime: 2.0 },
+        normal: { threshold: 65, sustainedTime: 2.5 },
+        hard: { threshold: 70, sustainedTime: 3.0 }
     },
     
     // Emotion difficulty ranking (subjective)
