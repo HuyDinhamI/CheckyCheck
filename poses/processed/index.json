@@ -5,9 +5,15 @@
       "json": "pose_1.json",
       "image": "images.jpeg",
       "difficulty": "Medium"
+    },
+    {
+      "name": "Pose2",
+      "json": "pose_2.json",
+      "image": "pose2.jpg",
+      "difficulty": "Hard"
     }
   ],
-  "created": "2025-06-15T10:21:00.000Z",
-  "total": 1,
-  "last_updated": "2025-06-15T17:22:16.807554"
+  "created": "2025-06-15T18:01:05.796692",
+  "total": 2,
+  "last_updated": "2025-06-15T18:01:05.796692"
 }
