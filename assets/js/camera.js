@@ -239,6 +239,9 @@ class FaceOverlayManager {
     constructor() {
         this.overlay = null;
         this.videoContainer = null;
+        this.fadeTimeout = null;
+        this.stableDetectionTime = null;
+        this.fadeDelay = 3000; // 3 seconds
     }
     
     init() {
@@ -246,7 +249,7 @@ class FaceOverlayManager {
         this.videoContainer = document.querySelector('.video-container');
     }
     
-    updateOverlay(faces, video) {
+    updateOverlay(faces, video, currentScore = 0) {
         if (!this.overlay || !faces || faces.length === 0) {
             this.hideOverlay();
             return;
@@ -270,18 +273,87 @@ class FaceOverlayManager {
         this.overlay.style.top = (relativeTop + face.y * scaleY) + 'px';
         this.overlay.style.width = (face.w * scaleX) + 'px';
         this.overlay.style.height = (face.h * scaleY) + 'px';
+        
+        // Update overlay appearance based on score
+        this.updateOverlayAppearance(currentScore);
+        
+        // Handle auto-fade after stable detection
+        this.handleAutoFade();
+    }
+    
+    updateOverlayAppearance(currentScore) {
+        if (!this.overlay) return;
+        
+        // Remove all classes first
+        this.overlay.classList.remove('detected', 'good-score', 'fade-out');
+        
+        // Add appropriate classes based on score
+        this.overlay.classList.add('detected');
+        if (currentScore >= 60) {
+            this.overlay.classList.add('good-score');
+        }
+    }
+    
+    handleAutoFade() {
+        // Start stable detection timer
+        if (!this.stableDetectionTime) {
+            this.stableDetectionTime = Date.now();
+        }
+        
+        // Clear existing fade timeout
+        if (this.fadeTimeout) {
+            clearTimeout(this.fadeTimeout);
+        }
+        
+        // Set new fade timeout
+        this.fadeTimeout = setTimeout(() => {
+            if (this.overlay) {
+                this.overlay.classList.add('fade-out');
+            }
+        }, this.fadeDelay);
     }
     
     hideOverlay() {
         if (this.overlay) {
             this.overlay.style.display = 'none';
+            this.overlay.classList.remove('detected', 'good-score', 'fade-out');
+        }
+        
+        // Reset timers
+        this.stableDetectionTime = null;
+        if (this.fadeTimeout) {
+            clearTimeout(this.fadeTimeout);
+            this.fadeTimeout = null;
         }
     }
     
     setOverlayColor(color) {
+        // This method is kept for backward compatibility but now uses CSS classes
+        if (!this.overlay) return;
+        
+        // Map colors to CSS classes
+        if (color.includes('255, 0, 0') || color.includes('#ff')) {
+            // Red - no face or error
+            this.overlay.classList.remove('detected', 'good-score');
+        } else if (color.includes('0, 255, 0') || color.includes('#00ff')) {
+            // Green - good score
+            this.overlay.classList.add('detected', 'good-score');
+        } else {
+            // Other colors - just detected
+            this.overlay.classList.add('detected');
+            this.overlay.classList.remove('good-score');
+        }
+    }
+    
+    // Method to temporarily show overlay (e.g., when face is lost)
+    showTemporarily() {
         if (this.overlay) {
-            this.overlay.style.borderColor = color;
-            this.overlay.style.backgroundColor = color.replace(')', ', 0.1)').replace('rgb', 'rgba');
+            this.overlay.classList.remove('fade-out');
+            this.stableDetectionTime = null;
+            if (this.fadeTimeout) {
+                clearTimeout(this.fadeTimeout);
+                this.fadeTimeout = null;
+            }
         }
     }
 }

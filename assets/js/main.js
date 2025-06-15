@@ -1,9 +1,76 @@
+// User management class
+class UserManager {
+    constructor() {
+        this.currentUser = null;
+        this.emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    }
+    
+    validateEmail(email) {
+        return this.emailRegex.test(email);
+    }
+    
+    validateName(name) {
+        return name.trim().length >= 2;
+    }
+    
+    login(fullname, email) {
+        if (!this.validateName(fullname)) {
+            throw new Error('Họ và tên phải có ít nhất 2 ký tự');
+        }
+        
+        if (!this.validateEmail(email)) {
+            throw new Error('Email không hợp lệ');
+        }
+        
+        this.currentUser = {
+            fullname: fullname.trim(),
+            email: email.trim(),
+            loginTime: new Date().toISOString()
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('checkycheck_user', JSON.stringify(this.currentUser));
+        
+        return this.currentUser;
+    }
+    
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('checkycheck_user');
+    }
+    
+    getCurrentUser() {
+        return this.currentUser;
+    }
+    
+    loadSavedUser() {
+        const saved = localStorage.getItem('checkycheck_user');
+        if (saved) {
+            try {
+                this.currentUser = JSON.parse(saved);
+                return this.currentUser;
+            } catch (error) {
+                console.warn('Could not load saved user data');
+                localStorage.removeItem('checkycheck_user');
+            }
+        }
+        return null;
+    }
+    
+    getFirstName() {
+        if (!this.currentUser) return 'Player';
+        const names = this.currentUser.fullname.split(' ');
+        return names[0];
+    }
+}
+
 // Main application controller
 class CheckyCheckApp {
     constructor() {
         this.currentScreen = 'landing-page';
         this.game = null;
         this.camera = null;
+        this.userManager = new UserManager();
         
         this.init();
     }
@@ -17,11 +84,33 @@ class CheckyCheckApp {
     setupEventListeners() {
         // Landing page buttons
         document.getElementById('start-btn').addEventListener('click', () => {
-            this.startGame();
+            this.showLoginScreen();
         });
         
         document.getElementById('instructions-btn').addEventListener('click', () => {
             this.showInstructions();
+        });
+        
+        // Login screen
+        document.getElementById('login-btn').addEventListener('click', () => {
+            this.handleLogin();
+        });
+        
+        document.getElementById('back-to-home-btn').addEventListener('click', () => {
+            this.goHome();
+        });
+        
+        // Enter key on login form
+        const loginForm = document.querySelector('#login-screen');
+        loginForm.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleLogin();
+            }
+        });
+        
+        // Real-time email validation
+        document.getElementById('email').addEventListener('input', (e) => {
+            this.validateEmailInput(e.target);
         });
         
         // Instructions modal
@@ -108,6 +197,12 @@ class CheckyCheckApp {
             // Show game screen
             this.showScreen('game-screen');
             
+            // Update player display
+            this.updatePlayerDisplay();
+            
+            // Show floating controls
+            this.showFloatingControls();
+            
             // Start the game
             this.game.start();
             
@@ -124,8 +219,95 @@ class CheckyCheckApp {
         }
     }
     
+    showLoginScreen() {
+        // Load saved user data if available
+        const savedUser = this.userManager.loadSavedUser();
+        if (savedUser) {
+            document.getElementById('fullname').value = savedUser.fullname;
+            document.getElementById('email').value = savedUser.email;
+        }
+        
+        this.clearLoginErrors();
+        this.showScreen('login-screen');
+    }
+    
+    handleLogin() {
+        const fullname = document.getElementById('fullname').value;
+        const email = document.getElementById('email').value;
+        
+        try {
+            const user = this.userManager.login(fullname, email);
+            console.log('✅ User logged in:', user);
+            this.clearLoginErrors();
+            this.startGame();
+        } catch (error) {
+            this.showLoginError(error.message);
+        }
+    }
+    
+    validateEmailInput(emailInput) {
+        const isValid = this.userManager.validateEmail(emailInput.value);
+        
+        if (emailInput.value.length > 0) {
+            if (isValid) {
+                emailInput.classList.remove('error');
+            } else {
+                emailInput.classList.add('error');
+            }
+        } else {
+            emailInput.classList.remove('error');
+        }
+    }
+    
+    showLoginError(message) {
+        const errorElement = document.getElementById('error-message');
+        errorElement.textContent = message;
+        errorElement.classList.add('show');
+    }
+    
+    clearLoginErrors() {
+        const errorElement = document.getElementById('error-message');
+        errorElement.textContent = '';
+        errorElement.classList.remove('show');
+        
+        // Clear input errors
+        document.getElementById('fullname').classList.remove('error');
+        document.getElementById('email').classList.remove('error');
+    }
+    
+    showFloatingControls() {
+        const floatingControls = document.getElementById('floating-controls');
+        floatingControls.classList.add('show');
+        
+        // Add event listeners if not already added
+        if (!this.floatingControlsInitialized) {
+            document.getElementById('skip-btn-float').addEventListener('click', () => {
+                if (this.game) this.game.skipLevel();
+            });
+            
+            document.getElementById('quit-btn-float').addEventListener('click', () => {
+                this.quitGame();
+            });
+            
+            this.floatingControlsInitialized = true;
+        }
+    }
+    
+    hideFloatingControls() {
+        const floatingControls = document.getElementById('floating-controls');
+        floatingControls.classList.remove('show');
+    }
+    
+    updatePlayerDisplay() {
+        const playerNameElement = document.getElementById('player-name');
+        if (playerNameElement) {
+            playerNameElement.textContent = this.userManager.getFirstName();
+        }
+    }
+
     goHome() {
         this.cleanupGame();
+        this.hideFloatingControls();
         this.showScreen('landing-page');
     }
     

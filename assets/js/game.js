@@ -218,8 +218,8 @@ class EmotionGame {
         const emotionData = result.emotions[0]; // Use first face
         const allEmotions = emotionData.all_emotions;
         
-        // Update face overlay
-        this.faceOverlay.updateOverlay([emotionData.face_position], this.app.camera.getVideoElement());
+        // Update face overlay with current score
+        this.faceOverlay.updateOverlay([emotionData.face_position], this.app.camera.getVideoElement(), this.currentScore);
         
         // Update emotion scores UI
         this.updateEmotionScoresUI(allEmotions);
@@ -240,6 +240,7 @@ class EmotionGame {
     
     onNoFaceDetected() {
         this.faceOverlay.hideOverlay();
+        this.faceOverlay.showTemporarily(); // Show overlay temporarily when no face detected
         this.sustainedStartTime = null; // Reset timer when no face detected
         this.progressLabel.textContent = 'Không phát hiện khuôn mặt. Hãy nhìn vào camera!';
         this.faceOverlay.setOverlayColor('#ff4444');
