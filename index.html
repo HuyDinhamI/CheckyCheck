@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pose Match Game - Web Edition</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Particles Background -->
+    <div class="particles-container" id="particles"></div>
+    
+    <!-- Login Phase -->
+    <div class="phase login-phase active" id="loginPhase">
+        <div class="background-overlay"></div>
+        
+        <div class="login-container">
+            <div class="game-logo">
+                <h1 class="title-main">
+                    <span class="word">POSE</span>
+                    <span class="word">MATCH</span>
+                    <span class="word">GAME</span>
+                </h1>
+                <p class="subtitle">Thử thách khả năng bắt chước tư thế của bạn!</p>
+            </div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="input-container">
+                    <div class="input-group">
+                        <input type="text" id="playerName" placeholder="Nhập tên của bạn" required>
+                        <label>👤 Tên người chơi</label>
+                        <span class="input-glow"></span>
+                        <div class="input-validation"></div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="email" id="playerEmail" placeholder="Nhập Gmail của bạn" required>
+                        <label>📧 Gmail</label>
+                        <span class="input-glow"></span>
+                        <div class="input-validation"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="start-btn">
+                    <span class="btn-text">🎮 Bắt đầu chơi</span>
+                    <div class="btn-ripple"></div>
+                </button>
+                
+                <div class="game-info">
+                    <div class="info-item">
+                        <span class="info-icon">🏆</span>
+                        <span>5 Rounds</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⏱️</span>
+                        <span>8s mỗi round</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">🎯</span>
+                        <span>Bắt chước pose</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <h3>Đang chuẩn bị game...</h3>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Phase -->
+    <div class="phase game-phase" id="gamePhase">
+        <div class="game-ui">
+            <div class="game-header">
+                <div class="round-info">
+                    <span class="round-text">Round <span id="currentRound">1</span>/<span id="totalRounds">5</span></span>
+                </div>
+                <div class="timer-container">
+                    <div class="timer-circle">
+                        <span class="timer-text" id="timerText">8</span>
+                    </div>
+                </div>
+                <div class="score-info">
+                    <span class="score-text">Score: <span id="currentScore">0</span></span>
+                </div>
+            </div>
+            
+            <div class="game-content">
+                <div class="camera-section">
+                    <video id="videoElement" class="camera-feed" autoplay muted playsinline></video>
+                    <canvas id="poseCanvas" class="pose-overlay"></canvas>
+                    <div class="camera-frame"></div>
+                    
+                    <div class="similarity-indicator">
+                        <div class="similarity-bar">
+                            <div class="similarity-fill" id="similarityFill"></div>
+                        </div>
+                        <span class="similarity-text" id="similarityText">Đứng vào khung hình</span>
+                    </div>
+                </div>
+                
+                <div class="pose-section">
+                    <div class="pose-container">
+                        <div class="pose-title">Tư thế mục tiêu</div>
+                        <div class="pose-image-container">
+                            <img id="targetPoseImage" class="pose-image" src="" alt="Target Pose">
+                            <div class="pose-glow"></div>
+                        </div>
+                        <div class="pose-difficulty" id="poseDifficulty">Medium</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Score Popup -->
+        <div class="score-popup" id="scorePopup">
+            <div class="score-popup-content">
+                <span class="score-value"></span>
+                <span class="score-label"></span>
+            </div>
+        </div>
+        
+        <!-- Round Transition -->
+        <div class="round-transition" id="roundTransition">
+            <div class="transition-content">
+                <h2 class="transition-title"></h2>
+                <div class="transition-score"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- End Phase -->
+    <div class="phase end-phase" id="endPhase">
+        <div class="background-overlay"></div>
+        
+        <div class="end-container">
+            <div class="final-score-container">
+                <h1 class="end-title">Hoàn thành!</h1>
+                <div class="final-score">
+                    <span class="score-label">Tổng điểm</span>
+                    <span class="score-number" id="finalScore">0</span>
+                    <span class="score-max">/ 50</span>
+                </div>
+                
+                <div class="performance-rating" id="performanceRating">
+                    <div class="rating-stars"></div>
+                    <div class="rating-text"></div>
+                </div>
+            </div>
+            
+            <div class="leaderboard-container">
+                <h3>🏆 Bảng xếp hạng</h3>
+                <div class="leaderboard" id="leaderboard">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+            
+            <div class="end-actions">
+                <button class="action-btn primary" id="playAgainBtn">
+                    <span>🔄 Chơi lại</span>
+                </button>
+                <button class="action-btn secondary" id="newPlayerBtn">
+                    <span>👤 Đổi người chơi</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Confetti -->
+        <div class="confetti-container" id="confetti"></div>
+    </div>
+    
+    <script src="pose-processor.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

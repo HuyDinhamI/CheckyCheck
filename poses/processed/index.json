@@ -1,0 +1,13 @@
+{
+  "poses": [
+    {
+      "name": "Images",
+      "json": "pose_1.json",
+      "image": "images.jpeg",
+      "difficulty": "Medium"
+    }
+  ],
+  "created": "2025-06-15T10:21:00.000Z",
+  "total": 1,
+  "last_updated": "2025-06-15T17:22:16.807554"
+}
