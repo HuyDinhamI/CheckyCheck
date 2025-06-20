@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -14,14 +15,21 @@ class BatchPoseExtractor:
         self.images_dir = "poses/images"
         self.processed_dir = "poses/processed"
         self.supported_formats = ['.jpg', '.jpeg', '.png', '.bmp']
+        self.difficulties = ['easy', 'medium', 'hard']
         
         # Ensure directories exist
         os.makedirs(self.images_dir, exist_ok=True)
         os.makedirs(self.processed_dir, exist_ok=True)
         
+        # Ensure difficulty directories exist
+        for diff in self.difficulties:
+            os.makedirs(os.path.join(self.images_dir, diff), exist_ok=True)
+            os.makedirs(os.path.join(self.processed_dir, diff), exist_ok=True)
+        
         print("🚀 Batch Pose Extractor đã sẵn sàng!")
-        print(f"📁 Images folder: {self.images_dir}")
-        print(f"📁 Output folder: {self.processed_dir}")
+        print("📁 Images folder: {}".format(self.images_dir))
+        print("📁 Output folder: {}".format(self.processed_dir))
+        print("🎯 Difficulty levels: {}".format(', '.join(self.difficulties)))
 
     def calculate_angle(self, a, b, c):
         """Tính góc giữa 3 điểm"""
@@ -92,25 +100,56 @@ class BatchPoseExtractor:
         return max(numbers) + 1 if numbers else 1
 
     def scan_images(self):
-        """Quét tất cả ảnh trong thư mục images"""
+        """Quét tất cả ảnh trong thư mục images (legacy method)"""
         image_files = []
         
         for ext in self.supported_formats:
-            pattern = os.path.join(self.images_dir, f"*{ext}")
+            pattern = os.path.join(self.images_dir, "*{}".format(ext))
             image_files.extend(glob.glob(pattern, recursive=False))
             
             # Also check uppercase extensions
-            pattern = os.path.join(self.images_dir, f"*{ext.upper()}")
+            pattern = os.path.join(self.images_dir, "*{}".format(ext.upper()))
             image_files.extend(glob.glob(pattern, recursive=False))
         
         image_files = list(set(image_files))  # Remove duplicates
         image_files.sort()  # Sort for consistent processing order
         
-        print(f"📸 Tìm thấy {len(image_files)} ảnh để xử lý:")
+        print("📸 Tìm thấy {} ảnh để xử lý:".format(len(image_files)))
         for img in image_files:
-            print(f"   - {os.path.basename(img)}")
+            print("   - {}".format(os.path.basename(img)))
         
         return image_files
+
+    def scan_images_by_difficulty(self):
+        """Quét ảnh theo từng mức độ khó"""
+        image_sets = {}
+        total_images = 0
+        
+        for difficulty in self.difficulties:
+            diff_path = os.path.join(self.images_dir, difficulty)
+            images = []
+            
+            if os.path.exists(diff_path):
+                for ext in self.supported_formats:
+                    pattern = os.path.join(diff_path, f"*{ext}")
+                    images.extend(glob.glob(pattern))
+                    
+                    # Also check uppercase extensions
+                    pattern = os.path.join(diff_path, f"*{ext.upper()}")
+                    images.extend(glob.glob(pattern))
+                
+                images = list(set(images))  # Remove duplicates
+                images.sort()
+            
+            image_sets[difficulty] = images
+            total_images += len(images)
+            
+            print(f"📸 {difficulty.upper()}: {len(images)} ảnh")
+            for img in images:
+                print(f"   - {os.path.basename(img)}")
+        
+        print(f"\n📊 Tổng cộng: {total_images} ảnh")
+        return image_sets
 
     def process_single_image(self, image_path):
         """Xử lý một ảnh duy nhất"""
@@ -154,30 +193,65 @@ class BatchPoseExtractor:
             }
 
     def load_existing_index(self):
-        """Load index.json hiện có hoặc tạo mới"""
+        """Load index.json hiện có hoặc tạo mới với structure difficulty-based"""
         index_path = os.path.join(self.processed_dir, "index.json")
         
         if os.path.exists(index_path):
             try:
                 with open(index_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    
+                    # Check if it's old format and convert
+                    if "poses" in data and isinstance(data["poses"], list):
+                        print("🔄 Converting old index format to new difficulty-based format...")
+                        return self.convert_old_index_format(data)
+                    
+                    return data
             except Exception as e:
                 print(f"⚠️ Lỗi đọc index.json: {e}")
                 print("🔄 Tạo index mới...")
         
         return {
-            "poses": [],
-            "created": datetime.now().isoformat(),
-            "total": 0
+            "poses": {
+                "easy": [],
+                "medium": [],
+                "hard": []
+            },
+            "total": {"easy": 0, "medium": 0, "hard": 0},
+            "created": datetime.now().isoformat()
         }
 
-    def update_index_json(self, new_poses):
-        """Cập nhật file index.json với poses mới"""
+    def convert_old_index_format(self, old_data):
+        """Convert old index format to new difficulty-based format"""
+        new_data = {
+            "poses": {
+                "easy": [],
+                "medium": [],
+                "hard": []
+            },
+            "total": {"easy": 0, "medium": 0, "hard": 0},
+            "created": old_data.get("created", datetime.now().isoformat()),
+            "converted_from_old_format": True
+        }
+        
+        # Migrate old poses to new format
+        for pose in old_data.get("poses", []):
+            difficulty = pose.get("difficulty", "medium").lower()
+            if difficulty in new_data["poses"]:
+                new_data["poses"][difficulty].append(pose)
+                new_data["total"][difficulty] += 1
+        
+        return new_data
+
+    def update_index_json(self, new_poses_by_difficulty):
+        """Cập nhật file index.json với poses mới theo difficulty"""
         index_data = self.load_existing_index()
         
-        # Add new poses
-        index_data["poses"].extend(new_poses)
-        index_data["total"] = len(index_data["poses"])
+        # Add new poses by difficulty
+        for difficulty, poses in new_poses_by_difficulty.items():
+            index_data["poses"][difficulty].extend(poses)
+            index_data["total"][difficulty] = len(index_data["poses"][difficulty])
+        
         index_data["last_updated"] = datetime.now().isoformat()
         
         # Save updated index
@@ -185,7 +259,21 @@ class BatchPoseExtractor:
         with open(index_path, 'w', encoding='utf-8') as f:
             json.dump(index_data, f, indent=2, ensure_ascii=False)
         
-        print(f"📊 Cập nhật index.json: {index_data['total']} poses tổng cộng")
+        total_poses = sum(index_data["total"].values())
+        print(f"📊 Cập nhật index.json: {total_poses} poses tổng cộng")
+        for diff, count in index_data["total"].items():
+            print(f"   - {diff.upper()}: {count} poses")
+
+    def update_index_json_legacy(self, new_poses):
+        """Legacy method - for backward compatibility"""
+        poses_by_difficulty = {"easy": [], "medium": [], "hard": []}
+        
+        for pose in new_poses:
+            difficulty = pose.get("difficulty", "medium").lower()
+            if difficulty in poses_by_difficulty:
+                poses_by_difficulty[difficulty].append(pose)
+        
+        self.update_index_json(poses_by_difficulty)
 
     def backup_existing_data(self):
         """Backup dữ liệu hiện có"""
@@ -204,8 +292,104 @@ class BatchPoseExtractor:
             
             print(f"💾 Backup dữ liệu cũ vào: {backup_dir}")
 
+    def process_all_images_by_difficulty(self, backup=True, min_quality=70):
+        """Xử lý ảnh theo từng difficulty folder (NEW METHOD)"""
+        print("=" * 50)
+        print("🎯 BẮT ĐẦU BATCH PROCESSING BY DIFFICULTY")
+        print("=" * 50)
+        
+        # Backup existing data
+        if backup:
+            self.backup_existing_data()
+        
+        # Scan for images by difficulty
+        image_sets = self.scan_images_by_difficulty()
+        
+        total_images = sum(len(images) for images in image_sets.values())
+        if total_images == 0:
+            print("❌ Không tìm thấy ảnh nào trong các thư mục difficulty!")
+            print("📁 Hãy copy ảnh vào poses/images/{easy,medium,hard}/")
+            return
+        
+        # Process images by difficulty
+        successful_poses_by_difficulty = {"easy": [], "medium": [], "hard": []}
+        failed_images = []
+        total_processed = 0
+        
+        for difficulty, image_files in image_sets.items():
+            if not image_files:
+                continue
+                
+            print(f"\n🔄 Xử lý {difficulty.upper()} poses...")
+            print("-" * 30)
+            
+            for i, image_path in enumerate(image_files):
+                image_name = os.path.basename(image_path)
+                total_processed += 1
+                print(f"📷 [{total_processed}/{total_images}] {difficulty.upper()}: {image_name}")
+                
+                result = self.process_single_image(image_path)
+                
+                if result['success']:
+                    # Check quality threshold
+                    if result['quality'] < min_quality:
+                        print(f"   ⚠️ Chất lượng thấp ({result['quality']:.1f}%) - Bỏ qua")
+                        failed_images.append({'file': image_name, 'reason': 'Low quality', 'difficulty': difficulty})
+                        continue
+                    
+                    # Generate pose filename for specific difficulty
+                    existing_count = len(successful_poses_by_difficulty[difficulty])
+                    pose_filename = f"{difficulty}_pose_{existing_count + 1}.json"
+                    pose_path = os.path.join(self.processed_dir, difficulty, pose_filename)
+                    
+                    # Save pose angles
+                    with open(pose_path, 'w') as f:
+                        json.dump(result['angles'], f)
+                    
+                    # Prepare index entry
+                    pose_entry = {
+                        "name": Path(image_name).stem.replace('_', ' ').title(),
+                        "json": f"{difficulty}/{pose_filename}",
+                        "image": f"{difficulty}/{image_name}",
+                        "difficulty": difficulty.title()
+                    }
+                    
+                    successful_poses_by_difficulty[difficulty].append(pose_entry)
+                    
+                    print(f"   ✅ Thành công → {pose_filename} (Q:{result['quality']:.1f}%)")
+                    
+                else:
+                    print(f"   ❌ Thất bại: {result['error']}")
+                    failed_images.append({'file': image_name, 'reason': result['error'], 'difficulty': difficulty})
+        
+        # Update index.json
+        if any(successful_poses_by_difficulty.values()):
+            self.update_index_json(successful_poses_by_difficulty)
+        
+        # Summary
+        print("\n" + "=" * 50)
+        print("📊 KẾT QUẢ PROCESSING")
+        print("=" * 50)
+        
+        total_successful = sum(len(poses) for poses in successful_poses_by_difficulty.values())
+        print(f"✅ Thành công: {total_successful} poses")
+        print(f"❌ Thất bại: {len(failed_images)} ảnh")
+        
+        for difficulty, poses in successful_poses_by_difficulty.items():
+            if poses:
+                print(f"\n🎯 {difficulty.upper()} poses ({len(poses)}):")
+                for pose in poses:
+                    print(f"   - {pose['name']}")
+        
+        if failed_images:
+            print(f"\n⚠️ Ảnh xử lý thất bại:")
+            for failed in failed_images:
+                print(f"   - {failed['difficulty']}/{failed['file']}: {failed['reason']}")
+        
+        print(f"\n🎮 Game đã sẵn sàng với {total_successful} poses mới!")
+
     def process_all_images(self, backup=True, min_quality=70):
-        """Xử lý tất cả ảnh trong thư mục"""
+        """Xử lý tất cả ảnh trong thư mục (LEGACY METHOD)"""
         print("=" * 50)
         print("🎯 BẮT ĐẦU BATCH PROCESSING")
         print("=" * 50)
@@ -267,9 +451,9 @@ class BatchPoseExtractor:
                 print(f"   ❌ Thất bại: {result['error']}")
                 failed_images.append({'file': image_name, 'reason': result['error']})
         
-        # Update index.json
+        # Update index.json (using legacy method)
         if successful_poses:
-            self.update_index_json(successful_poses)
+            self.update_index_json_legacy(successful_poses)
         
         # Summary
         print("\n" + "=" * 50)
@@ -291,31 +475,47 @@ class BatchPoseExtractor:
         print(f"\n🎮 Game đã sẵn sàng với {len(successful_poses)} poses mới!")
 
 def main():
-    """Main function"""
+    """Main function with difficulty-based processing support"""
     extractor = BatchPoseExtractor()
     
     print("🎯 Batch Pose Extractor for Web Game")
     print("📋 Hướng dẫn:")
-    print("   1. Copy tất cả ảnh pose vào thư mục 'poses/images/'")
+    print("   1. Copy ảnh pose vào thư mục theo difficulty:")
+    print("      - poses/images/easy/ (cho round 1,2)")
+    print("      - poses/images/medium/ (cho round 3,4)")
+    print("      - poses/images/hard/ (cho round 5)")
     print("   2. Chạy script này để tự động tạo JSON files")
-    print("   3. Game sẽ tự động sử dụng poses mới!")
+    print("   3. Game sẽ tự động sử dụng poses theo difficulty!")
     print()
     
-    # Check if images directory has files
-    image_files = extractor.scan_images()
-    if not image_files:
+    # Check for difficulty-based images first
+    image_sets = extractor.scan_images_by_difficulty()
+    total_difficulty_images = sum(len(images) for images in image_sets.values())
+    
+    # Check for legacy images
+    legacy_images = extractor.scan_images()
+    
+    if total_difficulty_images == 0 and len(legacy_images) == 0:
         print("❌ Không tìm thấy ảnh nào!")
-        print("📁 Hãy copy ảnh pose vào thư mục 'poses/images/' trước")
+        print("📁 Hãy copy ảnh pose vào thư mục trước khi chạy")
         return
     
-    # Confirm processing
-    response = input(f"\n🤔 Xử lý {len(image_files)} ảnh? (y/n): ").strip().lower()
-    if response not in ['y', 'yes']:
-        print("🛑 Hủy xử lý")
-        return
+    # Determine processing mode
+    if total_difficulty_images > 0:
+        print(f"\n🎯 Tìm thấy {total_difficulty_images} ảnh trong difficulty folders")
+        response = input("🤔 Xử lý theo difficulty-based system? (y/n): ").strip().lower()
+        if response in ['y', 'yes']:
+            extractor.process_all_images_by_difficulty()
+            return
     
-    # Process all images
-    extractor.process_all_images()
+    if len(legacy_images) > 0:
+        print(f"\n📁 Tìm thấy {len(legacy_images)} ảnh trong poses/images/ (legacy mode)")
+        response = input("🤔 Xử lý theo legacy mode? (y/n): ").strip().lower()
+        if response in ['y', 'yes']:
+            extractor.process_all_images()
+            return
+    
+    print("🛑 Không có processing mode nào được chọn")
 
 if __name__ == "__main__":
     main()

@@ -217,9 +217,13 @@ class PoseProcessor {
         }
     }
 
-    // Load tất cả pose samples từ thư mục
+    // Load poses by difficulty (NEW METHOD)
     async loadAllPoseSamples() {
-        const poses = [];
+        const posePools = {
+            easy: [],
+            medium: [],
+            hard: []
+        };
         
         try {
             // Try to load a poses index file first
@@ -227,44 +231,87 @@ class PoseProcessor {
             if (indexResponse.ok) {
                 const index = await indexResponse.json();
                 
-                for (const poseFile of index.poses) {
-                    const poseData = await this.loadPoseData(`poses/processed/${poseFile.json}`);
-                    if (poseData) {
-                        poses.push({
-                            angles: poseData,
-                            image: `poses/images/${poseFile.image}`,
-                            name: poseFile.name || 'Unknown Pose',
-                            difficulty: poseFile.difficulty || 'Medium'
-                        });
+                // Check if it's new difficulty-based format
+                if (index.poses && typeof index.poses === 'object' && !Array.isArray(index.poses)) {
+                    // New format: poses organized by difficulty
+                    for (const [difficulty, poseList] of Object.entries(index.poses)) {
+                        if (posePools[difficulty]) {
+                            for (const poseFile of poseList) {
+                                const poseData = await this.loadPoseData(`poses/processed/${poseFile.json}`);
+                                if (poseData) {
+                                    posePools[difficulty].push({
+                                        angles: poseData,
+                                        image: `poses/images/${poseFile.image}`,
+                                        name: poseFile.name || 'Unknown Pose',
+                                        difficulty: poseFile.difficulty || difficulty
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } else if (Array.isArray(index.poses)) {
+                    // Old format: flat array, distribute by difficulty
+                    for (const poseFile of index.poses) {
+                        const poseData = await this.loadPoseData(`poses/processed/${poseFile.json}`);
+                        if (poseData) {
+                            const difficulty = (poseFile.difficulty || 'Medium').toLowerCase();
+                            if (posePools[difficulty]) {
+                                posePools[difficulty].push({
+                                    angles: poseData,
+                                    image: `poses/images/${poseFile.image}`,
+                                    name: poseFile.name || 'Unknown Pose',
+                                    difficulty: poseFile.difficulty || 'Medium'
+                                });
+                            }
+                        }
                     }
                 }
             } else {
                 // Fallback: try to load common pose files
-                const commonPoses = [
-                    'pose1.json', 'pose2.json', 'pose3.json', 
-                    'pose4.json', 'pose5.json'
-                ];
+                console.warn('Index file not found, using fallback poses');
+                const fallbackPoses = this.createSamplePoses();
                 
-                for (const poseFile of commonPoses) {
-                    const poseData = await this.loadPoseData(`poses/processed/${poseFile}`);
-                    if (poseData) {
-                        poses.push({
-                            angles: poseData,
-                            image: `poses/images/${poseFile.replace('.json', '.jpg')}`,
-                            name: `Pose ${poses.length + 1}`,
-                            difficulty: 'Medium'
-                        });
+                // Distribute fallback poses by difficulty
+                fallbackPoses.forEach(pose => {
+                    const difficulty = pose.difficulty.toLowerCase();
+                    if (posePools[difficulty]) {
+                        posePools[difficulty].push(pose);
                     }
-                }
+                });
             }
         } catch (error) {
             console.warn('Could not load pose samples:', error);
             
             // Create sample poses for testing
-            poses.push(...this.createSamplePoses());
+            const fallbackPoses = this.createSamplePoses();
+            fallbackPoses.forEach(pose => {
+                const difficulty = pose.difficulty.toLowerCase();
+                if (posePools[difficulty]) {
+                    posePools[difficulty].push(pose);
+                }
+            });
         }
 
-        return poses;
+        console.log('Loaded pose pools:', {
+            easy: posePools.easy.length,
+            medium: posePools.medium.length,
+            hard: posePools.hard.length
+        });
+
+        return posePools;
+    }
+
+    // Legacy method for backward compatibility
+    async loadAllPoseSamplesLegacy() {
+        const posePools = await this.loadAllPoseSamples();
+        const allPoses = [];
+        
+        // Flatten all poses into single array
+        Object.values(posePools).forEach(poses => {
+            allPoses.push(...poses);
+        });
+        
+        return allPoses;
     }
 
     // Tạo sample poses để test (khi chưa có data thực)

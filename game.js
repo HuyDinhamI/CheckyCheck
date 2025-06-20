@@ -22,9 +22,17 @@ class PoseMatchGame {
         
         // Pose data
         this.poseSamples = [];
+        this.posePools = {
+            easy: [],
+            medium: [],
+            hard: []
+        };
         this.currentPose = null;
         this.currentSimilarity = 0;
         this.lastPoseAngles = null;
+        
+        // Difficulty progression: Round 1,2=Easy, Round 3,4=Medium, Round 5=Hard
+        this.ROUND_DIFFICULTIES = ['easy', 'easy', 'medium', 'medium', 'hard'];
         
         // MediaPipe & Camera
         this.poseProcessor = new PoseProcessor();
@@ -270,13 +278,25 @@ class PoseMatchGame {
             throw new Error('Failed to initialize MediaPipe Pose');
         }
         
-        // Load pose samples
-        this.poseSamples = await this.poseProcessor.loadAllPoseSamples();
-        if (this.poseSamples.length === 0) {
+        // Load pose samples by difficulty
+        this.posePools = await this.poseProcessor.loadAllPoseSamples();
+        
+        // Check if we have poses for all difficulties
+        const totalPoses = Object.values(this.posePools).reduce((sum, poses) => sum + poses.length, 0);
+        if (totalPoses === 0) {
             throw new Error('No pose samples available');
         }
         
-        console.log(`Loaded ${this.poseSamples.length} pose samples`);
+        // For backward compatibility, also populate poseSamples array
+        this.poseSamples = [];
+        Object.values(this.posePools).forEach(poses => {
+            this.poseSamples.push(...poses);
+        });
+        
+        console.log(`Loaded ${totalPoses} pose samples:`);
+        console.log(`- Easy: ${this.posePools.easy.length}`);
+        console.log(`- Medium: ${this.posePools.medium.length}`);
+        console.log(`- Hard: ${this.posePools.hard.length}`);
         
         // Initialize camera
         await this.initializeCamera();
@@ -373,8 +393,8 @@ class PoseMatchGame {
             return;
         }
         
-        // Select random pose
-        this.currentPose = this.poseSamples[Math.floor(Math.random() * this.poseSamples.length)];
+        // Select pose based on round difficulty
+        this.currentPose = this.selectPoseForRound(this.currentRound);
         
         // Update UI
         this.updateUI();
@@ -387,6 +407,34 @@ class PoseMatchGame {
         setTimeout(() => {
             this.startCountdown();
         }, 2000);
+    }
+
+    // Select pose based on round difficulty
+    selectPoseForRound(roundNumber) {
+        const difficulty = this.ROUND_DIFFICULTIES[roundNumber - 1];
+        const availablePoses = this.posePools[difficulty];
+        
+        // Fallback to all poses if no poses available for this difficulty
+        if (!availablePoses || availablePoses.length === 0) {
+            console.warn(`No ${difficulty} poses available, using fallback`);
+            if (this.poseSamples.length > 0) {
+                return this.poseSamples[Math.floor(Math.random() * this.poseSamples.length)];
+            }
+            // Last resort fallback
+            return {
+                angles: [90, 90, 180, 180, 170, 170, 160, 160, 90, 140, 140],
+                image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRlZmF1bHQgUG9zZTwvdGV4dD48L3N2Zz4=',
+                name: 'Default Pose',
+                difficulty: difficulty
+            };
+        }
+        
+        // Select random pose from the appropriate difficulty pool
+        const randomIndex = Math.floor(Math.random() * availablePoses.length);
+        const selectedPose = availablePoses[randomIndex];
+        
+        console.log(`Round ${roundNumber}: Selected ${difficulty} pose - ${selectedPose.name}`);
+        return selectedPose;
     }
 
     // Show round transition
