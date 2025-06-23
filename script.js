@@ -1,3 +1,222 @@
+// Input Mode Management
+class InputManager {
+    constructor(gameState) {
+        this.gameState = gameState;
+        this.mode = 'hand'; // 'hand' or 'mouse'
+        this.cameraAvailable = false;
+        this.mouseEvents = null;
+        
+        this.initializeToggleListeners();
+    }
+
+    initializeToggleListeners() {
+        const handBtn = document.getElementById('handModeBtn');
+        const mouseBtn = document.getElementById('mouseModeBtn');
+
+        handBtn.addEventListener('click', () => this.switchToHandMode());
+        mouseBtn.addEventListener('click', () => this.switchToMouseMode());
+    }
+
+    switchToHandMode() {
+        if (!this.cameraAvailable) {
+            this.showMessage('Camera không khả dụng. Vui lòng kiểm tra lại.', 'error');
+            return;
+        }
+
+        this.mode = 'hand';
+        this.disableMouseEvents();
+        this.updateUI();
+        this.hideHandCursor();
+    }
+
+    switchToMouseMode() {
+        this.mode = 'mouse';
+        this.enableMouseEvents();
+        this.updateUI();
+    }
+
+    enableMouseEvents() {
+        if (this.mouseEvents) return; // Already enabled
+
+        this.mouseEvents = {
+            mouseDown: this.handleMouseDown.bind(this),
+            mouseMove: this.handleMouseMove.bind(this),
+            mouseUp: this.handleMouseUp.bind(this)
+        };
+
+        document.addEventListener('mousedown', this.mouseEvents.mouseDown);
+        document.addEventListener('mousemove', this.mouseEvents.mouseMove);
+        document.addEventListener('mouseup', this.mouseEvents.mouseUp);
+    }
+
+    disableMouseEvents() {
+        if (!this.mouseEvents) return;
+
+        document.removeEventListener('mousedown', this.mouseEvents.mouseDown);
+        document.removeEventListener('mousemove', this.mouseEvents.mouseMove);
+        document.removeEventListener('mouseup', this.mouseEvents.mouseUp);
+        
+        this.mouseEvents = null;
+    }
+
+    handleMouseDown(event) {
+        if (this.mode !== 'mouse') return;
+
+        const segment = event.target.closest('.segment:not(.grabbed)');
+        if (segment && !segment.classList.contains('hidden')) {
+            this.gameState.grabbedSegment = {
+                element: segment,
+                segmentId: parseInt(segment.dataset.segmentId),
+                originalParent: segment.parentElement
+            };
+
+            segment.classList.add('grabbed');
+            segment.classList.remove('hovered');
+            event.preventDefault();
+        }
+    }
+
+    handleMouseMove(event) {
+        if (this.mode !== 'mouse') return;
+
+        // Update hover effects for mouse
+        this.updateMouseHoverEffects(event.clientX, event.clientY);
+    }
+
+    handleMouseUp(event) {
+        if (this.mode !== 'mouse' || !this.gameState.grabbedSegment) return;
+
+        const grabbed = this.gameState.grabbedSegment;
+        const dropZone = event.target.closest('.drop-zone');
+
+        if (dropZone) {
+            // Drop in zone
+            const position = parseInt(dropZone.dataset.position) - 1;
+            const dropContent = dropZone.querySelector('.drop-content');
+
+            // Check if zone already has content
+            if (this.gameState.dropZoneContents[position]) {
+                const existingSegment = dropContent.querySelector('.segment');
+                if (existingSegment) {
+                    existingSegment.classList.remove('grabbed');
+                    document.getElementById('segmentsArea').appendChild(existingSegment);
+                    this.gameState.dropZoneContents[position] = null;
+                }
+            }
+
+            // Place grabbed segment in zone
+            dropContent.appendChild(grabbed.element);
+            this.gameState.dropZoneContents[position] = this.getSegmentData(grabbed.segmentId);
+        } else {
+            // Drop back to original location
+            grabbed.originalParent.appendChild(grabbed.element);
+        }
+
+        // Clean up
+        grabbed.element.classList.remove('grabbed');
+        this.gameState.grabbedSegment = null;
+        this.gameState.updateUI();
+    }
+
+    updateMouseHoverEffects(mouseX, mouseY) {
+        const hoverThreshold = 0; // Direct hover for mouse
+
+        // Update segments hover
+        const segments = document.querySelectorAll('.segment:not(.grabbed)');
+        segments.forEach(segment => {
+            if (segment.classList.contains('hidden')) return;
+            
+            const rect = segment.getBoundingClientRect();
+            const isHovered = mouseX >= rect.left && mouseX <= rect.right && 
+                             mouseY >= rect.top && mouseY <= rect.bottom;
+
+            if (isHovered) {
+                segment.classList.add('hovered');
+            } else {
+                segment.classList.remove('hovered');
+            }
+        });
+
+        // Update drop zones hover
+        const dropZones = document.querySelectorAll('.drop-zone');
+        dropZones.forEach(zone => {
+            const rect = zone.getBoundingClientRect();
+            const isHovered = mouseX >= rect.left && mouseX <= rect.right && 
+                             mouseY >= rect.top && mouseY <= rect.bottom;
+
+            if (isHovered) {
+                zone.classList.add('highlight');
+            } else {
+                zone.classList.remove('highlight');
+            }
+        });
+    }
+
+    getSegmentData(segmentId) {
+        return songData.segments.find(segment => segment.id === segmentId);
+    }
+
+    updateUI() {
+        const handBtn = document.getElementById('handModeBtn');
+        const mouseBtn = document.getElementById('mouseModeBtn');
+        const modeIndicator = document.getElementById('currentMode');
+
+        // Update button states
+        handBtn.classList.toggle('active', this.mode === 'hand');
+        mouseBtn.classList.toggle('active', this.mode === 'mouse');
+
+        // Update mode indicator
+        modeIndicator.textContent = this.mode === 'hand' ? '📱 Hand Tracking' : '🖱️ Mouse Control';
+    }
+
+    hideHandCursor() {
+        const cursor = document.getElementById('handCursor');
+        if (cursor) {
+            cursor.style.display = 'none';
+        }
+    }
+
+    showHandCursor() {
+        const cursor = document.getElementById('handCursor');
+        if (cursor) {
+            cursor.style.display = 'block';
+        }
+    }
+
+    showMessage(message, type = 'info') {
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    setCameraAvailable(available) {
+        this.cameraAvailable = available;
+        if (!available && this.mode === 'hand') {
+            this.switchToMouseMode();
+            this.showMessage('Camera không khả dụng, chuyển sang Mouse mode', 'error');
+        }
+    }
+}
+
 // Game State Management
 class GameState {
     constructor() {
@@ -367,11 +586,24 @@ class AudioManager {
 class GameController {
     constructor() {
         this.gameState = new GameState();
-        this.handTracker = new HandTracker(this.gameState);
+        this.inputManager = new InputManager(this.gameState);
         this.audioManager = new AudioManager();
         
+        this.initializeHandTracker();
         this.initializeEventListeners();
         this.gameState.initializeGame();
+    }
+
+    async initializeHandTracker() {
+        try {
+            this.handTracker = new HandTracker(this.gameState, this.inputManager);
+            this.inputManager.setCameraAvailable(true);
+            console.log('✅ Camera khởi tạo thành công');
+        } catch (error) {
+            console.warn('⚠️ Camera không khả dụng:', error);
+            this.inputManager.setCameraAvailable(false);
+            this.inputManager.switchToMouseMode();
+        }
     }
 
     initializeEventListeners() {
