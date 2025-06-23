@@ -15,8 +15,26 @@ let gameState = {
     isPlaying: false,
     balloons: [],
     handPosition: null,
+    handLandmarks: null,
     gameStartTime: null,
     animationId: null
+};
+
+// Hand images and state
+const handImages = {
+    open: new Image(),
+    closed: new Image()
+};
+
+let currentHandState = 'open';
+let handStateSmoothing = 0;
+
+// Hand configuration
+const HAND_CONFIG = {
+    imageSize: { width: 80, height: 80 },
+    sensitivity: 3, // Số ngón để detect "open"
+    smoothingThreshold: 5, // Frames to smooth state changes
+    showDebug: false // Show landmarks overlay
 };
 
 // Balloon types (same as Python version)
@@ -68,6 +86,9 @@ function init() {
     elements.countdownNumber = document.getElementById('countdown-number');
     elements.finalScore = document.getElementById('final-score');
 
+    // Load hand images
+    loadHandImages();
+
     // Setup canvas
     setupCanvas();
 
@@ -77,6 +98,18 @@ function init() {
 
     // Handle window resize
     window.addEventListener('resize', setupCanvas);
+}
+
+// Load hand images
+function loadHandImages() {
+    handImages.open.src = 'open.png';
+    handImages.closed.src = 'close.png';
+    
+    handImages.open.onload = () => console.log('Open hand image loaded');
+    handImages.closed.onload = () => console.log('Closed hand image loaded');
+    
+    handImages.open.onerror = () => console.error('Failed to load open.png');
+    handImages.closed.onerror = () => console.error('Failed to load close.png');
 }
 
 function setupCanvas() {
@@ -303,21 +336,131 @@ function drawBalloons() {
 }
 
 function drawHandCursor() {
-    // Draw hand skeleton
-    drawHandSkeleton();
+    // Draw hand image based on gesture
+    drawHandImage();
     
     // Draw finger tip cursor
     if (gameState.handPosition) {
         const { x, y } = gameState.handPosition;
         
         elements.ctx.beginPath();
-        elements.ctx.arc(x, y, 15, 0, 2 * Math.PI);
+        elements.ctx.arc(x, y, 12, 0, 2 * Math.PI);
         elements.ctx.fillStyle = '#ff6b6b';
         elements.ctx.shadowColor = '#ff6b6b';
         elements.ctx.shadowBlur = 20;
         elements.ctx.fill();
         elements.ctx.shadowBlur = 0;
     }
+}
+
+// Detect hand gesture (open/closed)
+function detectHandGesture(landmarks) {
+    if (!landmarks || landmarks.length < 21) return 'open';
+    
+    const fingers = [];
+    
+    // Thumb - check if tip is to the right of joint (for right hand)
+    const thumbTip = landmarks[4];
+    const thumbJoint = landmarks[3];
+    if (thumbTip.x > thumbJoint.x) {
+        fingers.push(1);
+    } else {
+        fingers.push(0);
+    }
+    
+    // Other 4 fingers - check if tip is above PIP joint
+    const fingerTips = [8, 12, 16, 20]; // Index, middle, ring, pinky
+    const fingerPips = [6, 10, 14, 18]; // PIP joints
+    
+    for (let i = 0; i < 4; i++) {
+        const tip = landmarks[fingerTips[i]];
+        const pip = landmarks[fingerPips[i]];
+        
+        if (tip.y < pip.y) {
+            fingers.push(1); // Finger extended
+        } else {
+            fingers.push(0); // Finger folded
+        }
+    }
+    
+    // Count extended fingers
+    const extendedFingers = fingers.reduce((sum, finger) => sum + finger, 0);
+    
+    // Return gesture based on extended fingers
+    return extendedFingers >= HAND_CONFIG.sensitivity ? 'open' : 'closed';
+}
+
+// Draw hand image
+function drawHandImage() {
+    if (!gameState.handLandmarks) return;
+    
+    // Detect current gesture
+    const detectedGesture = detectHandGesture(gameState.handLandmarks);
+    
+    // Smooth state transitions
+    if (detectedGesture !== currentHandState) {
+        handStateSmoothing++;
+        if (handStateSmoothing >= HAND_CONFIG.smoothingThreshold) {
+            currentHandState = detectedGesture;
+            handStateSmoothing = 0;
+        }
+    } else {
+        handStateSmoothing = Math.max(0, handStateSmoothing - 1);
+    }
+    
+    // Get hand center (wrist position)
+    const wrist = gameState.handLandmarks[0];
+    const image = handImages[currentHandState];
+    
+    // Calculate dynamic size based on hand size
+    const handBounds = getHandBounds(gameState.handLandmarks);
+    const handSize = Math.max(handBounds.width, handBounds.height);
+    const imageSize = Math.max(HAND_CONFIG.imageSize.width, handSize * 0.8);
+    
+    // Draw image if loaded
+    if (image && image.complete) {
+        elements.ctx.save();
+        
+        // Add slight glow effect
+        elements.ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+        elements.ctx.shadowBlur = 10;
+        
+        // Draw hand image centered on wrist
+        elements.ctx.drawImage(
+            image,
+            wrist.x - imageSize / 2,
+            wrist.y - imageSize / 2,
+            imageSize,
+            imageSize
+        );
+        
+        elements.ctx.restore();
+    }
+    
+    // Debug: show landmarks if enabled
+    if (HAND_CONFIG.showDebug) {
+        drawHandSkeleton();
+    }
+}
+
+// Get hand bounding box
+function getHandBounds(landmarks) {
+    let minX = landmarks[0].x, maxX = landmarks[0].x;
+    let minY = landmarks[0].y, maxY = landmarks[0].y;
+    
+    landmarks.forEach(landmark => {
+        minX = Math.min(minX, landmark.x);
+        maxX = Math.max(maxX, landmark.x);
+        minY = Math.min(minY, landmark.y);
+        maxY = Math.max(maxY, landmark.y);
+    });
+    
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+    };
 }
 
 function drawHandSkeleton() {
@@ -389,6 +532,15 @@ function checkCollisions() {
 }
 
 function popBalloon(balloon, index) {
+    // Force hand to closed state for grab effect
+    currentHandState = 'closed';
+    handStateSmoothing = 0;
+    
+    // Reset back to normal after short delay
+    setTimeout(() => {
+        handStateSmoothing = 0;
+    }, 200);
+
     // Update score
     gameState.score += balloon.points;
     updateScore();
@@ -402,7 +554,7 @@ function popBalloon(balloon, index) {
     // Remove balloon
     gameState.balloons.splice(index, 1);
 
-    // Add pop animation (we'll implement this later)
+    // Add pop animation
     createPopEffect(balloon.x, balloon.y);
 }
 
