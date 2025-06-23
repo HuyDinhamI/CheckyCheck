@@ -31,7 +31,7 @@ let handStateSmoothing = 0;
 
 // Hand configuration
 const HAND_CONFIG = {
-    imageSize: { width: 50, height: 50 },
+    imageSize: { width: 25, height: 25 },
     sensitivity: 3, // Số ngón để detect "open"
     smoothingThreshold: 5, // Frames to smooth state changes
     showDebug: false // Show landmarks overlay
