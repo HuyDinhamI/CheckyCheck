@@ -41,7 +41,6 @@ body {
     border: 3px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     z-index: 5;
-    transform: scaleX(-1); /* Mirror để tự nhiên */
     background: #000;
 }
 
