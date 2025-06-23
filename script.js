@@ -31,7 +31,7 @@ let handStateSmoothing = 0;
 
 // Hand configuration
 const HAND_CONFIG = {
-    imageSize: { width: 80, height: 80 },
+    imageSize: { width: 50, height: 50 },
     sensitivity: 3, // Số ngón để detect "open"
     smoothingThreshold: 5, // Frames to smooth state changes
     showDebug: false // Show landmarks overlay
@@ -336,21 +336,10 @@ function drawBalloons() {
 }
 
 function drawHandCursor() {
-    // Draw hand image based on gesture
+    // Draw hand image based on gesture only
     drawHandImage();
     
-    // Draw finger tip cursor
-    if (gameState.handPosition) {
-        const { x, y } = gameState.handPosition;
-        
-        elements.ctx.beginPath();
-        elements.ctx.arc(x, y, 12, 0, 2 * Math.PI);
-        elements.ctx.fillStyle = '#ff6b6b';
-        elements.ctx.shadowColor = '#ff6b6b';
-        elements.ctx.shadowBlur = 20;
-        elements.ctx.fill();
-        elements.ctx.shadowBlur = 0;
-    }
+    // Remove red dot cursor - no longer needed with hand image
 }
 
 // Detect hand gesture (open/closed)
@@ -419,13 +408,7 @@ function drawHandImage() {
     
     // Draw image if loaded
     if (image && image.complete) {
-        elements.ctx.save();
-        
-        // Add slight glow effect
-        elements.ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-        elements.ctx.shadowBlur = 10;
-        
-        // Draw hand image centered on wrist
+        // Draw hand image centered on wrist without any effects for transparency
         elements.ctx.drawImage(
             image,
             wrist.x - imageSize / 2,
@@ -433,8 +416,6 @@ function drawHandImage() {
             imageSize,
             imageSize
         );
-        
-        elements.ctx.restore();
     }
     
     // Debug: show landmarks if enabled
