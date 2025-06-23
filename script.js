@@ -302,8 +302,6 @@ function spawnBalloon() {
         y: CONFIG.CANVAS_HEIGHT + 50,
         size: BALLOON_TYPES[type].size,
         speed: CONFIG.BALLOON_SPEED + Math.random() * 2,
-        canGrab: false,
-        highlighted: false,
         ...BALLOON_TYPES[type]
     };
 
@@ -326,22 +324,9 @@ function drawBalloons() {
         elements.ctx.font = `${balloon.size}px Arial`;
         elements.ctx.textAlign = 'center';
         
-        // Add highlight effect if can grab
-        if (balloon.highlighted) {
-            elements.ctx.shadowColor = '#ffffff';
-            elements.ctx.shadowBlur = 20;
-            
-            // Add pulsing ring around balloon
-            elements.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            elements.ctx.lineWidth = 3;
-            elements.ctx.beginPath();
-            elements.ctx.arc(balloon.x, balloon.y - balloon.size/2, balloon.size/2 + 10, 0, 2 * Math.PI);
-            elements.ctx.stroke();
-        } else {
-            // Normal glow effect
-            elements.ctx.shadowColor = balloon.color;
-            elements.ctx.shadowBlur = 10;
-        }
+        // Simple glow effect for all balloons
+        elements.ctx.shadowColor = balloon.color;
+        elements.ctx.shadowBlur = 10;
         
         elements.ctx.fillText(balloon.emoji, balloon.x, balloon.y);
         
@@ -522,25 +507,12 @@ function checkCollisions() {
 
         const isNearBalloon = distance < balloon.size / 2 + 30;
 
-        // Stage 1: Proximity detection (hand open near balloon)
-        if (isNearBalloon && currentHandState === 'open') {
-            balloon.canGrab = true;
-            balloon.highlighted = true;
-        }
-        // Stage 2: Actual grab (hand closed when near and can grab)
-        else if (isNearBalloon && currentHandState === 'closed' && balloon.canGrab) {
-            // Successfully grabbed!
+        // Simple logic: CHỈ bắt khi nắm tay VÀ gần balloon
+        if (isNearBalloon && currentHandState === 'closed') {
             popBalloon(balloon, index);
         }
-        // Reset states when not near
-        else if (!isNearBalloon) {
-            balloon.canGrab = false;
-            balloon.highlighted = false;
-        }
-        // Hand closed but not grabbable (missed opportunity)
-        else if (currentHandState === 'closed' && !balloon.canGrab) {
-            balloon.highlighted = false;
-        }
+        
+        // Tay mở = không làm gì cả
     });
 }
 
@@ -653,7 +625,42 @@ function endGame() {
 }
 
 function restartGame() {
-    startGame();
+    // Clean up existing game state
+    if (gameState.animationId) {
+        cancelAnimationFrame(gameState.animationId);
+    }
+    
+    // Reset hand tracking state
+    gameState.handPosition = null;
+    gameState.handLandmarks = null;
+    currentHandState = 'open';
+    handStateSmoothing = 0;
+    
+    // Clear balloons
+    gameState.balloons = [];
+    
+    // Stop existing camera and hands
+    if (camera) {
+        camera.stop();
+        camera = null;
+    }
+    
+    if (hands) {
+        hands.close();
+        hands = null;
+    }
+    
+    // Stop existing camera stream
+    if (elements.cameraPreview.srcObject) {
+        const tracks = elements.cameraPreview.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        elements.cameraPreview.srcObject = null;
+    }
+    
+    // Small delay to ensure cleanup, then restart
+    setTimeout(() => {
+        startGame();
+    }, 500);
 }
 
 // Sound effects (placeholder - you can add actual sound files later)
