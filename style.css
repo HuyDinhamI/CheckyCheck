@@ -30,6 +30,25 @@ body {
     z-index: 1;
 }
 
+/* Camera preview window */
+.camera-preview {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    height: 150px;
+    border-radius: 10px;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 5;
+    transform: scaleX(-1); /* Mirror để tự nhiên */
+    background: #000;
+}
+
+.camera-preview.hidden {
+    display: none;
+}
+
 /* Game canvas */
 #game-canvas {
     position: absolute;
@@ -272,6 +291,14 @@ button:active {
     button {
         padding: 12px 24px;
         font-size: 16px;
+    }
+    
+    /* Mobile camera preview */
+    .camera-preview {
+        top: 10px;
+        right: 10px;
+        width: 150px;
+        height: 113px;
     }
 }
 

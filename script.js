@@ -33,6 +33,7 @@ const elements = {
     canvas: null,
     ctx: null,
     video: null,
+    cameraPreview: null,
     permissionScreen: null,
     countdownScreen: null,
     gameOverScreen: null,
@@ -55,6 +56,7 @@ function init() {
     elements.canvas = document.getElementById('game-canvas');
     elements.ctx = elements.canvas.getContext('2d');
     elements.video = document.getElementById('video');
+    elements.cameraPreview = document.getElementById('camera-preview');
     elements.permissionScreen = document.getElementById('permission-screen');
     elements.countdownScreen = document.getElementById('countdown-screen');
     elements.gameOverScreen = document.getElementById('game-over-screen');
@@ -87,6 +89,15 @@ function setupCanvas() {
 // MediaPipe setup
 async function setupHandTracking() {
     try {
+        // Get camera stream for preview
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 640, height: 480 } 
+        });
+        
+        // Set up preview video
+        elements.cameraPreview.srcObject = stream;
+        elements.cameraPreview.classList.remove('hidden');
+        
         // Initialize MediaPipe Hands
         hands = new Hands({
             locateFile: (file) => {
@@ -103,7 +114,7 @@ async function setupHandTracking() {
 
         hands.onResults(onHandResults);
 
-        // Setup camera
+        // Setup camera for MediaPipe
         camera = new Camera(elements.video, {
             onFrame: async () => {
                 await hands.send({ image: elements.video });
@@ -129,8 +140,15 @@ function onHandResults(results) {
             x: indexFinger.x * CONFIG.CANVAS_WIDTH,
             y: indexFinger.y * CONFIG.CANVAS_HEIGHT
         };
+        
+        // Store full hand landmarks for drawing
+        gameState.handLandmarks = hand.map(landmark => ({
+            x: landmark.x * CONFIG.CANVAS_WIDTH,
+            y: landmark.y * CONFIG.CANVAS_HEIGHT
+        }));
     } else {
         gameState.handPosition = null;
+        gameState.handLandmarks = null;
     }
 }
 
@@ -285,6 +303,10 @@ function drawBalloons() {
 }
 
 function drawHandCursor() {
+    // Draw hand skeleton
+    drawHandSkeleton();
+    
+    // Draw finger tip cursor
     if (gameState.handPosition) {
         const { x, y } = gameState.handPosition;
         
@@ -296,6 +318,57 @@ function drawHandCursor() {
         elements.ctx.fill();
         elements.ctx.shadowBlur = 0;
     }
+}
+
+function drawHandSkeleton() {
+    if (!gameState.handLandmarks) return;
+    
+    const landmarks = gameState.handLandmarks;
+    const ctx = elements.ctx;
+    
+    // Hand connections (MediaPipe hand model)
+    const connections = [
+        [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
+        [0, 5], [5, 6], [6, 7], [7, 8], // Index finger
+        [0, 9], [9, 10], [10, 11], [11, 12], // Middle finger
+        [0, 13], [13, 14], [14, 15], [15, 16], // Ring finger
+        [0, 17], [17, 18], [18, 19], [19, 20], // Pinky
+        [5, 9], [9, 13], [13, 17] // Palm connections
+    ];
+    
+    // Draw connections (hand skeleton)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+    ctx.shadowBlur = 5;
+    
+    connections.forEach(([start, end]) => {
+        if (landmarks[start] && landmarks[end]) {
+            ctx.beginPath();
+            ctx.moveTo(landmarks[start].x, landmarks[start].y);
+            ctx.lineTo(landmarks[end].x, landmarks[end].y);
+            ctx.stroke();
+        }
+    });
+    
+    // Draw landmarks (hand joints)
+    ctx.fillStyle = 'rgba(255, 107, 107, 0.8)';
+    ctx.shadowColor = 'rgba(255, 107, 107, 0.5)';
+    ctx.shadowBlur = 10;
+    
+    landmarks.forEach((landmark, index) => {
+        ctx.beginPath();
+        
+        // Make finger tips larger
+        const isFingerTip = [4, 8, 12, 16, 20].includes(index);
+        const radius = isFingerTip ? 8 : 5;
+        
+        ctx.arc(landmark.x, landmark.y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
 }
 
 function checkCollisions() {
