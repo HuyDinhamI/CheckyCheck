@@ -302,6 +302,8 @@ function spawnBalloon() {
         y: CONFIG.CANVAS_HEIGHT + 50,
         size: BALLOON_TYPES[type].size,
         speed: CONFIG.BALLOON_SPEED + Math.random() * 2,
+        canGrab: false,
+        highlighted: false,
         ...BALLOON_TYPES[type]
     };
 
@@ -324,9 +326,22 @@ function drawBalloons() {
         elements.ctx.font = `${balloon.size}px Arial`;
         elements.ctx.textAlign = 'center';
         
-        // Add glow effect
-        elements.ctx.shadowColor = balloon.color;
-        elements.ctx.shadowBlur = 10;
+        // Add highlight effect if can grab
+        if (balloon.highlighted) {
+            elements.ctx.shadowColor = '#ffffff';
+            elements.ctx.shadowBlur = 20;
+            
+            // Add pulsing ring around balloon
+            elements.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            elements.ctx.lineWidth = 3;
+            elements.ctx.beginPath();
+            elements.ctx.arc(balloon.x, balloon.y - balloon.size/2, balloon.size/2 + 10, 0, 2 * Math.PI);
+            elements.ctx.stroke();
+        } else {
+            // Normal glow effect
+            elements.ctx.shadowColor = balloon.color;
+            elements.ctx.shadowBlur = 10;
+        }
         
         elements.ctx.fillText(balloon.emoji, balloon.x, balloon.y);
         
@@ -505,9 +520,26 @@ function checkCollisions() {
             Math.pow(handX - balloon.x, 2) + Math.pow(handY - balloon.y, 2)
         );
 
-        if (distance < balloon.size / 2 + 15) {
-            // Collision detected
+        const isNearBalloon = distance < balloon.size / 2 + 30;
+
+        // Stage 1: Proximity detection (hand open near balloon)
+        if (isNearBalloon && currentHandState === 'open') {
+            balloon.canGrab = true;
+            balloon.highlighted = true;
+        }
+        // Stage 2: Actual grab (hand closed when near and can grab)
+        else if (isNearBalloon && currentHandState === 'closed' && balloon.canGrab) {
+            // Successfully grabbed!
             popBalloon(balloon, index);
+        }
+        // Reset states when not near
+        else if (!isNearBalloon) {
+            balloon.canGrab = false;
+            balloon.highlighted = false;
+        }
+        // Hand closed but not grabbable (missed opportunity)
+        else if (currentHandState === 'closed' && !balloon.canGrab) {
+            balloon.highlighted = false;
         }
     });
 }
