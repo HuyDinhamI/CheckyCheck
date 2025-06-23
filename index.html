@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Pop Game</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background -->
+        <div id="background"></div>
+        
+        <!-- Camera feed (hidden) -->
+        <video id="video" autoplay muted playsinline style="display: none;"></video>
+        
+        <!-- Game canvas -->
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- UI Elements -->
+        <div id="ui">
+            <div id="score">Điểm: 0</div>
+            <div id="timer">Thời gian: 10</div>
+        </div>
+        
+        <!-- Game states -->
+        <div id="permission-screen" class="screen">
+            <div class="screen-content">
+                <h1>🎈 Balloon Pop Game</h1>
+                <p>Sử dụng ngón tay để bắn bong bóng!</p>
+                <button id="start-btn">Bắt đầu chơi</button>
+            </div>
+        </div>
+        
+        <div id="countdown-screen" class="screen hidden">
+            <div class="screen-content">
+                <div id="countdown-number">3</div>
+            </div>
+        </div>
+        
+        <div id="game-over-screen" class="screen hidden">
+            <div class="screen-content">
+                <h2>🎉 Game Over!</h2>
+                <div id="final-score">Điểm của bạn: 0</div>
+                <button id="restart-btn">Chơi lại</button>
+            </div>
+        </div>
+        
+        <!-- Loading screen -->
+        <div id="loading-screen" class="screen hidden">
+            <div class="screen-content">
+                <div class="loading-spinner"></div>
+                <p>Đang tải game...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
