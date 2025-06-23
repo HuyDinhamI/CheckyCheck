@@ -404,7 +404,7 @@ function drawHandImage() {
     // Calculate dynamic size based on hand size
     const handBounds = getHandBounds(gameState.handLandmarks);
     const handSize = Math.max(handBounds.width, handBounds.height);
-    const imageSize = Math.max(HAND_CONFIG.imageSize.width, handSize * 0.8);
+    const imageSize = Math.max(HAND_CONFIG.imageSize.width, handSize * 0.5);
     
     // Draw image if loaded
     if (image && image.complete) {
@@ -593,12 +593,79 @@ function updateScore() {
 
 function updateTimer() {
     elements.timerDisplay.textContent = `Thời gian: ${gameState.timeLeft}`;
+    
+    // Change timer color when time is running out
+    if (gameState.timeLeft <= 5) {
+        elements.timerDisplay.style.color = '#ff4444';
+        elements.timerDisplay.style.fontWeight = 'bold';
+        elements.timerDisplay.style.fontSize = '28px';
+    } else {
+        elements.timerDisplay.style.color = 'white';
+        elements.timerDisplay.style.fontWeight = 'bold';
+        elements.timerDisplay.style.fontSize = '24px';
+    }
+}
+
+function showCountdownWarning(timeLeft) {
+    // Create large countdown overlay
+    const warningElement = document.createElement('div');
+    warningElement.className = 'countdown-warning';
+    warningElement.textContent = timeLeft;
+    warningElement.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 150px;
+        font-weight: bold;
+        color: #ff4444;
+        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+        z-index: 15;
+        pointer-events: none;
+        animation: countdownPulse 1s ease-out;
+    `;
+    
+    document.getElementById('game-container').appendChild(warningElement);
+    
+    // Play urgent sound
+    playUrgentSound();
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (warningElement.parentNode) {
+            warningElement.remove();
+        }
+    }, 1000);
+}
+
+function playUrgentSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // Higher pitch for urgency
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.4);
 }
 
 function startTimer() {
     const timerInterval = setInterval(() => {
         gameState.timeLeft--;
         updateTimer();
+
+        // Show countdown warning when 5 seconds left
+        if (gameState.timeLeft <= 5 && gameState.timeLeft > 0) {
+            showCountdownWarning(gameState.timeLeft);
+        }
 
         if (gameState.timeLeft <= 0) {
             clearInterval(timerInterval);
@@ -695,7 +762,7 @@ function playSound(type) {
     oscillator.stop(audioContext.currentTime + 0.3);
 }
 
-// Add CSS for particle animation
+// Add CSS for particle animation and countdown warning
 const style = document.createElement('style');
 style.textContent = `
 @keyframes particle-explode {
@@ -705,6 +772,21 @@ style.textContent = `
     }
     100% {
         transform: translate(var(--vx, 0), var(--vy, 0));
+        opacity: 0;
+    }
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
         opacity: 0;
     }
 }
