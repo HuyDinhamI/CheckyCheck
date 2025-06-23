@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Puzzle Bài Xẩm</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Game Puzzle Bài Xẩm</h1>
+            <p>Sắp xếp các đoạn hát theo đúng thứ tự bằng cách sử dụng tay</p>
+        </header>
+
+        <!-- Camera mini (fixed position) -->
+        <div class="camera-mini">
+            <video class="input_video" width="640" height="480" autoplay muted></video>
+            <canvas class="output_canvas" width="200" height="150"></canvas>
+            <div class="hand-status">
+                <span id="handStatus">Đang tìm tay...</span>
+            </div>
+        </div>
+
+        <!-- Main Game Interface -->
+        <div class="main-game">
+            <div class="song-title">
+                <h2 id="songTitle">Đang tải bài hát...</h2>
+            </div>
+
+            <!-- Drop zones (lên trên) -->
+            <div class="drop-zones-container">
+                <h3>Sắp xếp theo thứ tự:</h3>
+                <div class="drop-zones" id="dropZones">
+                    <div class="drop-zone" data-position="1">
+                        <span class="position-label">Vị trí 1</span>
+                        <div class="drop-content" id="drop1"></div>
+                    </div>
+                    <div class="drop-zone" data-position="2">
+                        <span class="position-label">Vị trí 2</span>
+                        <div class="drop-content" id="drop2"></div>
+                    </div>
+                    <div class="drop-zone" data-position="3">
+                        <span class="position-label">Vị trí 3</span>
+                        <div class="drop-content" id="drop3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="game-controls">
+                <button id="checkBtn" class="btn btn-primary" disabled>🎵 Kiểm tra & Phát nhạc</button>
+                <button id="replayBtn" class="btn btn-secondary" style="display: none;">🔄 Chơi lại</button>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results" style="display: none;">
+                <div class="result-message" id="resultMessage"></div>
+            </div>
+
+            <!-- Segments (xuống dưới) -->
+            <div class="segments-container">
+                <h3>Các đoạn hát:</h3>
+                <div class="segments-area" id="segmentsArea">
+                    <!-- Segments sẽ được tạo động bằng JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>Hướng dẫn:</h3>
+            <ul>
+                <li>📱 Đưa tay vào camera để hệ thống nhận diện</li>
+                <li>✋ Chụm 5 ngón tay lại để "cầm" đoạn hát</li>
+                <li>👆 Nhả tay ra để "thả" đoạn hát vào vị trí</li>
+                <li>🎯 Sắp xếp các đoạn theo đúng thứ tự của bài hát</li>
+                <li>🎵 Bấm "Kiểm tra" để nghe nhạc và xem kết quả</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
