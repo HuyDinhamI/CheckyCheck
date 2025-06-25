@@ -1,0 +1,53 @@
+{
+  "poses": {
+    "easy": [
+      {
+        "name": "Pose3",
+        "json": "easy/easy_pose_1.json",
+        "image": "easy/pose3.jpg",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Pose4",
+        "json": "easy/easy_pose_2.json",
+        "image": "easy/pose4.jpg",
+        "difficulty": "Easy"
+      }
+    ],
+    "medium": [
+      {
+        "name": "Images",
+        "json": "medium/medium_pose_1.json",
+        "image": "medium/images.jpeg",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Pose5",
+        "json": "medium/medium_pose_2.json",
+        "image": "medium/pose5.jpg",
+        "difficulty": "Medium"
+      }
+    ],
+    "hard": [
+      {
+        "name": "Pose2",
+        "json": "hard/hard_pose_1.json",
+        "image": "hard/pose2.jpg",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Pose6",
+        "json": "hard/hard_pose_2.json",
+        "image": "hard/pose6.jpg",
+        "difficulty": "Hard"
+      }
+    ]
+  },
+  "total": {
+    "easy": 2,
+    "medium": 2,
+    "hard": 2
+  },
+  "created": "2025-06-21T19:35:02.645798",
+  "last_updated": "2025-06-21T19:35:02.645798"
+}

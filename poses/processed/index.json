@@ -1,42 +1,287 @@
 {
-<<<<<<< HEAD
-  "poses": [
-    {
-      "name": "Images",
-      "json": "pose_1.json",
-      "image": "images.jpeg",
-      "difficulty": "Medium"
-    },
-    {
-      "name": "Pose2",
-      "json": "pose_2.json",
-      "image": "pose2.jpg",
-      "difficulty": "Hard"
-    }
-  ],
-  "created": "2025-06-15T18:01:05.796692",
-  "total": 2,
-  "last_updated": "2025-06-15T18:01:05.796692"
-=======
   "poses": {
-    "easy": [],
+    "easy": [
+      {
+        "name": "Easy 1",
+        "json": "easy/easy_pose_1.json",
+        "image": "easy/easy_1.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 10",
+        "json": "easy/easy_pose_2.json",
+        "image": "easy/easy_10.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 11",
+        "json": "easy/easy_pose_3.json",
+        "image": "easy/easy_11.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 12",
+        "json": "easy/easy_pose_4.json",
+        "image": "easy/easy_12.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 13",
+        "json": "easy/easy_pose_5.json",
+        "image": "easy/easy_13.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 14",
+        "json": "easy/easy_pose_6.json",
+        "image": "easy/easy_14.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 15",
+        "json": "easy/easy_pose_7.json",
+        "image": "easy/easy_15.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 16",
+        "json": "easy/easy_pose_8.json",
+        "image": "easy/easy_16.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 17",
+        "json": "easy/easy_pose_9.json",
+        "image": "easy/easy_17.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 18",
+        "json": "easy/easy_pose_10.json",
+        "image": "easy/easy_18.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 19",
+        "json": "easy/easy_pose_11.json",
+        "image": "easy/easy_19.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 2",
+        "json": "easy/easy_pose_12.json",
+        "image": "easy/easy_2.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 20",
+        "json": "easy/easy_pose_13.json",
+        "image": "easy/easy_20.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 21",
+        "json": "easy/easy_pose_14.json",
+        "image": "easy/easy_21.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 3",
+        "json": "easy/easy_pose_15.json",
+        "image": "easy/easy_3.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 4",
+        "json": "easy/easy_pose_16.json",
+        "image": "easy/easy_4.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 5",
+        "json": "easy/easy_pose_17.json",
+        "image": "easy/easy_5.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 6",
+        "json": "easy/easy_pose_18.json",
+        "image": "easy/easy_6.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 7",
+        "json": "easy/easy_pose_19.json",
+        "image": "easy/easy_7.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 8",
+        "json": "easy/easy_pose_20.json",
+        "image": "easy/easy_8.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Easy 9",
+        "json": "easy/easy_pose_21.json",
+        "image": "easy/easy_9.png",
+        "difficulty": "Easy"
+      },
+      {
+        "name": "Pose1",
+        "json": "easy/easy_pose_22.json",
+        "image": "easy/pose1.jpg",
+        "difficulty": "Easy"
+      }
+    ],
     "medium": [
       {
-        "name": "Images",
-        "json": "pose_1.json",
-        "image": "images.jpeg",
+        "name": "Medium 1",
+        "json": "medium/medium_pose_1.json",
+        "image": "medium/medium_1.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 10",
+        "json": "medium/medium_pose_2.json",
+        "image": "medium/medium_10.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 11",
+        "json": "medium/medium_pose_3.json",
+        "image": "medium/medium_11.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 12",
+        "json": "medium/medium_pose_4.json",
+        "image": "medium/medium_12.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 13",
+        "json": "medium/medium_pose_5.json",
+        "image": "medium/medium_13.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 14",
+        "json": "medium/medium_pose_6.json",
+        "image": "medium/medium_14.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 15",
+        "json": "medium/medium_pose_7.json",
+        "image": "medium/medium_15.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 2",
+        "json": "medium/medium_pose_8.json",
+        "image": "medium/medium_2.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 3",
+        "json": "medium/medium_pose_9.json",
+        "image": "medium/medium_3.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 4",
+        "json": "medium/medium_pose_10.json",
+        "image": "medium/medium_4.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 5",
+        "json": "medium/medium_pose_11.json",
+        "image": "medium/medium_5.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 6",
+        "json": "medium/medium_pose_12.json",
+        "image": "medium/medium_6.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 7",
+        "json": "medium/medium_pose_13.json",
+        "image": "medium/medium_7.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 8",
+        "json": "medium/medium_pose_14.json",
+        "image": "medium/medium_8.png",
+        "difficulty": "Medium"
+      },
+      {
+        "name": "Medium 9",
+        "json": "medium/medium_pose_15.json",
+        "image": "medium/medium_9.png",
         "difficulty": "Medium"
       }
     ],
-    "hard": []
+    "hard": [
+      {
+        "name": "Hard 1",
+        "json": "hard/hard_pose_1.json",
+        "image": "hard/hard_1.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 2",
+        "json": "hard/hard_pose_2.json",
+        "image": "hard/hard_2.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 4",
+        "json": "hard/hard_pose_3.json",
+        "image": "hard/hard_4.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 5",
+        "json": "hard/hard_pose_4.json",
+        "image": "hard/hard_5.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 6",
+        "json": "hard/hard_pose_5.json",
+        "image": "hard/hard_6.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 7",
+        "json": "hard/hard_pose_6.json",
+        "image": "hard/hard_7.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 8",
+        "json": "hard/hard_pose_7.json",
+        "image": "hard/hard_8.png",
+        "difficulty": "Hard"
+      },
+      {
+        "name": "Hard 9",
+        "json": "hard/hard_pose_8.json",
+        "image": "hard/hard_9.png",
+        "difficulty": "Hard"
+      }
+    ]
   },
   "total": {
-    "easy": 0,
-    "medium": 1,
-    "hard": 0
+    "easy": 22,
+    "medium": 15,
+    "hard": 8
   },
-  "created": "2025-06-15T10:21:00.000Z",
-  "converted_from_old_format": true,
-  "last_updated": "2025-06-20T08:51:54.036079"
->>>>>>> update
+  "created": "2025-06-26T01:48:18.426474",
+  "last_updated": "2025-06-26T01:48:18.426474"
 }
