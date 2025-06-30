@@ -1,25 +1,26 @@
 // Dữ liệu bài hát xẩm mẫu
 const songData = {
-    title: "Tình Quê Hương - Bài Xẩm Truyền Thống",
+    title: "XẨM THẬP ÂN - CÔNG CHA NGÃI MẸ SINH THÀNH",
     segments: [
         {
             id: 1,
-            text: "Quê hương tôi ơi, nơi đất mẹ sinh ra\nCánh đồng xanh tươi, sông nước mênh mang\nTiếng hát ru con, lời ca dao dân gian\nMãi mãi trong tim, tình yêu quê nhà",
+            text: "Ngãi mẹ sinh thành chớ có (ó) quên\ncông cha ngãi (ãi) mẹ sinh thành\nMẹ mang con vào tháng ớ\nThai (i) sinh một giờ\nỞ trong lòng mẹ cha(ả)\nsợ tanh Ho (i ơ )\n\nTrong mấy (í) xin mẹ\nchả(ả) chắn (i) tanh nhớ (ơ)\nKeep con từ thư mở\nnước ngây thơ như là\nChớ con quên công cha (mà)\nmà ngãi(í) mẹ sinh con ra",
             order: 1,
-            audioFile: "segment-1.mp3"
+            audioFile: "XẨM THẬP ÂN - CÔNG CHA NGÃI MẸ SINH THÀNH - ver1.mp3"
         },
         {
             id: 2, 
-            text: "Chiều về lúa vàng, gió đồng thổi nhẹ\nTiếng cười trẻ thơ, vang vọng khắp nơi\nMẹ tóc bạc rồi, cha già khom lưng\nCon xa quê hương, lòng nhớ ngày xưa",
+            text: "Công mẹ (ẹ) cũng lắm công\ncha thờ nhiều lần là khi (ớ con ơ) bồng bềnh\nbầu vú có sữa nâng niu (ơ)\n\nNửa mấy khi (ớ) bồng bềnh, bồng bềnh (ế) nâng niu\nSinh con (mấy) trai con gái\nCông lao cha mẹ (thì) khai quang\nchả (mấy) cho đêm ngày (thì) cho con\nbún ăn",
             order: 2,
-            audioFile: "segment-2.mp3"
+            audioFile: "XẨM THẬP ÂN - CÔNG CHA NGÃI MẸ SINH THÀNH - ver2.mp3"
         },
         {
             id: 3,
-            text: "Dù đi xa xôi, dù có giàu sang\nQuê hương vẫn mãi, trong trái tim con\nMột ngày trở về, sẽ cúi đầu thành kính\nTạ ơn đất mẹ, đã sinh dưỡng ta",
+            text: "Đêm nằm quần áo\nChiếc chăn nó ướt đầm lầy\n\nchỗ ướt (ơ) thời mẹ chịu cho tâm yên(ư)\n\nƯớt mấy (thời) mẹ .chịu nản tâm\nmau (nhận í) xê lại con\nnằm ở chỗ êm,\nĐốt ngọn đèn(con ơi) thông(ư) thu cả đêm\n\nChờ đợi, cho con đi ngủ ấm\nmẹ nằm mong mấy ngày con ơi\n(thì) mong tháng đủ, mà đầy năm.",
             order: 3,
-            audioFile: "segment-3.mp3"
+            audioFile: "XẨM THẬP ÂN - CÔNG CHA NGÃI MẸ SINH THÀNH - ver3.mp3"
         }
+
     ],
     
     // Hàm trộn ngẫu nhiên thứ tự segments
@@ -86,20 +87,20 @@ const audioConfig = {
     
     // Phát audio cho segment
     playSegment: function(segmentId, onEnded) {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const buffer = this.createTone(segmentId);
-        const source = audioContext.createBufferSource();
-        
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-        
-        if (onEnded) {
-            source.onended = onEnded;
+        const segment = songData.segments.find(seg => seg.id === segmentId);
+        if (!segment || !segment.audioFile) {
+            console.warn('Không tìm thấy audio cho segmentId:', segmentId);
+            if (onEnded) onEnded();
+            return;
         }
+
+        const audio = new Audio(segment.audioFile);
+        audio.onended = onEnded;
+        audio.play();
         
-        source.start();
-        return source;
-    },
+        return audio;
+    }
+    ,
     
     // Phát chuỗi audio theo thứ tự
     playSequence: function(segmentIds, onComplete) {
