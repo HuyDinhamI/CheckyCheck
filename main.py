@@ -286,7 +286,7 @@ while True:
         print(f"Screenshot saved as {screenshot_filename}")
         screenshot_time = float('inf')  # Prevent further screenshot capture
     if timeRemain < 0:
-        finish_imgBackground = pygame.image.load('./Resources/finish_new_back.png').convert()
+        finish_imgBackground = pygame.image.load('./Resources/BG.png').convert()
         finish_imgBackground = pygame.transform.scale(finish_imgBackground, (1280, 720))
         # Show Final Score
         window.fill((255, 255, 255))
