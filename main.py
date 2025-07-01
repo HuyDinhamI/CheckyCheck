@@ -112,39 +112,39 @@ class Balloon:
         self.rect.x = random.randint(100, background.shape[1] - 100)
         self.rect.y = background.shape[0] + 50
 
-# tinh_yeu = Balloon('tinh_yeu', pygame.image.load('./Resources/love.png').convert_alpha(), 150, 150, 10, 11)
-# tot_nghiep = Balloon('tot_nghiep', pygame.image.load('./Resources/graduation.png').convert_alpha(), 115, 150, 20, 14)
-# nha = Balloon('nha', pygame.image.load('./Resources/house.png').convert_alpha(), 175, 125, 10, 8)
-# oto = Balloon('oto', pygame.image.load('./Resources/car.png').convert_alpha(), 175, 125, 10, 8)
-# bom = Balloon('bom', pygame.image.load('./Resources/bomb.png').convert_alpha(), 125, 125, -25, 10)
+# tinh_yeu = Balloon('tinh_yeu', pygame.image.load('./Resources/icon/1.png').convert_alpha(), 150, 150, 10, 11)
+# tot_nghiep = Balloon('tot_nghiep', pygame.image.load('./Resources/icon/2.png').convert_alpha(), 115, 150, 20, 14)
+# nha = Balloon('nha', pygame.image.load('./Resources/icon/3.png').convert_alpha(), 175, 125, 10, 8)
+# oto = Balloon('oto', pygame.image.load('./Resources/icon/4.png').convert_alpha(), 175, 125, 10, 8)
+# bom = Balloon('bom', pygame.image.load('./Resources/icon/5.png').convert_alpha(), 125, 125, 15, 10)
 tinh_yeu = Balloon(
     'tinh_yeu', 
-    pygame.image.load('./Resources/love.png').convert_alpha(), 
+    pygame.image.load('./Resources/icon/1.png').convert_alpha(), 
     140, 140, 10, 11,
     pygame.mixer.Sound('./Resources/shine-193240.mp3')  # Unique sound for 'tinh_yeu'
 )
 tot_nghiep = Balloon(
     'tot_nghiep', 
-    pygame.image.load('./Resources/graduation.png').convert_alpha(), 
+    pygame.image.load('./Resources/icon/2.png').convert_alpha(), 
     105, 140, 20, 14,
     pygame.mixer.Sound('./Resources/successed-295058.mp3')  # Unique sound for 'tot_nghiep'
 )
 nha = Balloon(
     'nha', 
-    pygame.image.load('./Resources/house.png').convert_alpha(), 
+    pygame.image.load('./Resources/icon/3.png').convert_alpha(), 
     165, 115, 10, 8,
     pygame.mixer.Sound('./Resources/pop.wav')  # Unique sound for 'nha'
 )
 oto = Balloon(
     'oto', 
-    pygame.image.load('./Resources/car.png').convert_alpha(), 
+    pygame.image.load('./Resources/icon/4.png').convert_alpha(), 
     165, 115, 10, 8,
     pygame.mixer.Sound('./Resources/car-door-close-6929.mp3')  # Unique sound for 'oto'
 )
 bom = Balloon(
     'bom', 
-    pygame.image.load('./Resources/bomb.png').convert_alpha(), 
-    115, 115, -25, 10,
+    pygame.image.load('./Resources/icon/5.png').convert_alpha(), 
+    115, 115, 15, 10,
     pygame.mixer.Sound('./Resources/bbang-47623.mp3')  # Unique sound for 'bom'
 )
 
@@ -173,7 +173,7 @@ detector = HandDetector(detectionCon=0.8, maxHands=1)
 popSound = pygame.mixer.Sound('./Resources/race-start-beeps-125125.mp3')
 
 # Show Start Page
-imgBackground = pygame.image.load('./Resources/new_back.png').convert()
+imgBackground = pygame.image.load('./Resources/BG.png').convert()
 imgBackground = pygame.transform.scale(imgBackground, (1280, 720))
 pygame.display.set_caption("Nhập thông tin")
 
@@ -247,7 +247,7 @@ for i in range(countdown_time, 0, -1):
     pygame.time.wait(1000)  # Wait for 1 second between each countdown
 
 startTime = time.time()
-totalTime = 10
+totalTime = 50
 fps = 120
 clock = pygame.time.Clock()
 
