@@ -64,7 +64,7 @@ body {
     visibility: hidden;
     transform: translateY(50px);
     transition: var(--transition-smooth);
-    background: url('start_bg.jpg') center/cover no-repeat;
+    background: url('BG_TF.jpg') center/cover no-repeat;
 }
 
 .phase.active {
